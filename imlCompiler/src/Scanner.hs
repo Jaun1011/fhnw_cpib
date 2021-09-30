@@ -8,6 +8,7 @@ import Data.Sequence.Internal.Sorting (QList(Nil))
 
 data Terminal
     = IDENT
+    | ASSIGN
     | NOT
     | LPAREN
     | RPAREN
@@ -40,16 +41,22 @@ data RelOperator
 
 type Token = (Terminal, Maybe Attirbute)
 
+
 scanner :: String -> [Token]
 scanner = s0
 
 s0 :: String -> [Token]
 s0 [] = []
-s0 ('<':'=':cs) = (RELOPR, Just (RelOperator LESS_EQUAL))    : s0 cs
+s0 (x:[]) = []
+s0 ('<':'=':cs) = (ASSIGN, Nothing)    : s0 cs
 s0 ('>':'=':cs) = (RELOPR, Just (RelOperator GREATER_EQUAL)) : s0 cs
+s0 (':':'=':cs)     = (RELOPR, Just (RelOperator EQUAL))         : s0 cs
 s0 ('=':cs)     = (RELOPR, Just (RelOperator EQUAL))         : s0 cs
 s0 ('<':cs)     = (RELOPR, Just (RelOperator LESS))          : s0 cs
 s0 ('>':cs)     = (RELOPR, Just (RelOperator GREATER))       : s0 cs
+s0 ('(':cs)     = (LPAREN, Nothing)       : s0 cs
+s0 (')':cs)     = (RPAREN, Nothing)       : s0 cs
+s0 (' ':cs)     = s0 cs
 s0 (c:cs)
     | isAlpha c =
         let x = s1 (c:cs)
@@ -68,7 +75,6 @@ s2 :: String -> (String, Token)
 s2 x = 
     let n = split x isDigit
     in (snd n, (ALITERAL, Just (IntType (read (fst n) :: Int)))) -- todo: jku int needs to be fixed for larger numbers
-
 
 
 isLiteral :: Char -> Bool 
