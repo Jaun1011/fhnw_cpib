@@ -2,7 +2,7 @@ module Scanner
     ( scanner
     ) where
 
-import Prelude (Show, Maybe (Just, Nothing), String, Int, snd, fst, ($), otherwise)
+import Prelude (Show, Maybe (Just, Nothing), String, Int, snd, fst, ($), otherwise, (||), Char, Bool, Eq ((==)))
 import GHC.Unicode (isAlpha, isDigit)
 import Data.Sequence.Internal.Sorting (QList(Nil))
 
@@ -56,19 +56,22 @@ s0 (c:cs)
 
 
 s1 :: String -> (String, Token)
-s1 x = ("", (LITERAL, Just (StringType $s1_literal' x)))
+s1 x = 
+    let n = split x isLiteral 
+    in (snd n, (LITERAL, Just (StringType (fst n))))
 
 
-s1_remain' :: String -> String
-s1_remain' (a:as)
-    | isAlpha a = s1_remain' as
-    | isDigit a = s1_remain' as
-    | otherwise  = as
+isLiteral :: Char -> Bool 
+isLiteral c = isDigit c || isAlpha c
 
-s1_literal' :: String -> String
-s1_literal' (a:as)
-    | isAlpha a = a : s1_literal' as
-    | isDigit a = a : s1_literal' as
-    | otherwise  = ""
+
+-- split string by condition in (head, tail)
+split :: String -> (Char -> Bool) -> (String , String)
+split [] _ = ("", "")
+split (a:as) fn
+    | fn a = 
+         let n = split as fn 
+         in (a : fst n, snd n)
+    | otherwise = ("", a:as)
 
 
