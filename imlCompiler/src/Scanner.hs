@@ -2,9 +2,10 @@ module Scanner
     ( scanner
     ) where
 
-import Prelude (Show, Maybe (Just, Nothing), String, Int, snd, fst, ($), otherwise, (||), Char, Bool, Eq ((==), (/=)), read, ($))
+import Prelude (Show, Maybe (Just, Nothing), String, Int, snd, fst, ($), otherwise, (||), Char, Bool, Eq ((==), (/=)), read, ($), (.))
 import GHC.Unicode (isAlpha, isDigit)
 import GHC.Float (fromRat'')
+import Data.Maybe
 
 data Terminal
     = IDENT
@@ -17,12 +18,14 @@ data Terminal
     | SEMICOLON
     | COMMA
     | RELOPR
+    | WHILE
     | LOGICOPR
     | ARITMOPR
     | SKIP
     | IF
     | THEN
     | ELSE
+    | ENDIF
     | LITERAL
     | ALITERAL
     | TYPEDEF
@@ -38,6 +41,9 @@ data Attirbute
     | StringType String
     deriving(Show)
 
+
+
+
 data LogicOperator
     = AND
     | OR
@@ -51,6 +57,7 @@ data RelOperator
     | LESS_EQUAL
     deriving(Show)
 
+
 data AritmeticOperator
    = PLUS
    | MINUS
@@ -61,18 +68,38 @@ data AritmeticOperator
 
 type Token = (Terminal, Maybe Attirbute)
 
-aphastroph = '\''
+apastroph :: Char 
+apastroph = '\''
 
 scanner :: String -> [Token]
-scanner = s0
+scanner a = kwt $ s0 a 
+
+
+litAttr :: Attirbute -> String
+litAttr (StringType a) = a
+
+kwt :: [Token] -> [Token]
+kwt [] = []
+kwt ((LITERAL, attr):as) = keyword (litAttr $ fromJust attr) : kwt as
+kwt (a:as) = a: kwt as
+
+
+
+keyword :: String -> Token
+keyword "if"    = (IF,Nothing)
+keyword "then"  = (THEN,Nothing)
+keyword "else"  = (ELSE,Nothing)
+keyword "endif" = (ENDIF,Nothing)
+keyword "while" = (WHILE,Nothing)
+keyword c       = (LITERAL, Just $StringType c) 
 
 
 -- 
 s0 :: String -> [Token]
 s0 [] = []
 
-s0 ('/':'\\':'?':cs) = (LOGICOPR, Just (LogicOperator AND))    : s0 cs
-s0 ('\\':'/':'?':cs) = (LOGICOPR, Just (LogicOperator OR))     : s0 cs
+s0 ('/':'\\':'?':cs) = (LOGICOPR, Just (LogicOperator AND))     : s0 cs
+s0 ('\\':'/':'?':cs) = (LOGICOPR, Just (LogicOperator OR))      : s0 cs
 
 s0 ('/':'/':cs) = let (s, token) = s1_comment cs in token: s0 s
 s0 (':':'=':cs) = (ASSIGN, Nothing) : s0 cs
@@ -82,17 +109,17 @@ s0 ('=':cs)     = (RELOPR, Just (RelOperator EQUAL))            : s0 cs
 s0 ('<':cs)     = (RELOPR, Just (RelOperator LESS))             : s0 cs
 s0 ('>':cs)     = (RELOPR, Just (RelOperator GREATER))          : s0 cs
 
-s0 ('+':cs)     = (ARITMOPR, Just (AritmeticOperator PLUS))              : s0 cs
-s0 ('-':cs)     = (ARITMOPR, Just (AritmeticOperator MINUS))             : s0 cs
-s0 ('/':cs)     = (ARITMOPR, Just (AritmeticOperator DIV))               : s0 cs
-s0 ('*':cs)     = (ARITMOPR, Just (AritmeticOperator MULTI))             : s0 cs
+s0 ('+':cs)     = (ARITMOPR, Just (AritmeticOperator PLUS))     : s0 cs
+s0 ('-':cs)     = (ARITMOPR, Just (AritmeticOperator MINUS))    : s0 cs
+s0 ('/':cs)     = (ARITMOPR, Just (AritmeticOperator DIV))      : s0 cs
+s0 ('*':cs)     = (ARITMOPR, Just (AritmeticOperator MULTI))    : s0 cs
 
-s0 ('(':cs)     = (LPAREN, Nothing) : s0 cs
-s0 (')':cs)     = (RPAREN, Nothing) : s0 cs
+s0 ('(':cs)     = (LPAREN, Nothing)     : s0 cs
+s0 (')':cs)     = (RPAREN, Nothing)     : s0 cs
 
-s0 (':':cs)     = (TYPEDEF, Nothing) : s0 cs
-s0 (';':cs)     = (SEMICOLON, Nothing) : s0 cs
-s0 (',':cs)     = (COMMA, Nothing) : s0 cs
+s0 (':':cs)     = (TYPEDEF, Nothing)    : s0 cs
+s0 (';':cs)     = (SEMICOLON, Nothing)  : s0 cs
+s0 (',':cs)     = (COMMA, Nothing)      : s0 cs
 
 s0 (' ':cs)     = s0 cs
 s0 ('\n':cs)    = s0 cs
@@ -117,18 +144,17 @@ s2_number :: String -> (String, Token)
 s2_number x = transformSplit (litNum, b) ALITERAL (\n -> IntType (read n :: Int))
     where 
         (a,b) = split x isNumber
-        litNum = remove a aphastroph
+        litNum = remove a apastroph
 
 transformSplit :: (String , String) -> Terminal -> (String -> Attirbute) -> (String, Token)
 transformSplit (a, b) attr fn = (b, (attr, Just (fn a)))
 
-
 -- is character a digit or a number
 isLiteral :: Char -> Bool
-isLiteral c = isDigit c || isAlpha c || c == aphastroph
+isLiteral c = isDigit c || isAlpha c || c == apastroph
 
 isNumber :: Char -> Bool
-isNumber c = isDigit c || isAlpha c || c == aphastroph
+isNumber c = isDigit c || isAlpha c || c == apastroph
 
 
 -- split string by condition in (head, tail)
