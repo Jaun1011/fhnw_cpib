@@ -1,1 +1,3 @@
 # imlCompiler
+
+    stack run

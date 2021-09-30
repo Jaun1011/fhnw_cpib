@@ -2,31 +2,45 @@ module Scanner
     ( scanner
     ) where
 
-import Prelude (Show, Maybe (Just, Nothing), String, Int, snd, fst, ($), otherwise, (||), Char, Bool, Eq ((==)), read)
+import Prelude (Show, Maybe (Just, Nothing), String, Int, snd, fst, ($), otherwise, (||), Char, Bool, Eq ((==), (/=)), read, ($))
 import GHC.Unicode (isAlpha, isDigit)
-import Data.Sequence.Internal.Sorting (QList(Nil))
+import GHC.Float (fromRat'')
 
 data Terminal
     = IDENT
+    | COMMENT
     | ASSIGN
     | NOT
     | LPAREN
     | RPAREN
     | BECOMES
     | SEMICOLON
+    | COMMA
     | RELOPR
+    | LOGICOPR
+    | ARITMOPR
     | SKIP
     | IF
     | THEN
     | ELSE
     | LITERAL
     | ALITERAL
+    | TYPEDEF
+    | UNKNOWN
+    
     deriving(Show)
 
 data Attirbute
     = RelOperator RelOperator
+    | AritmeticOperator AritmeticOperator
+    | LogicOperator LogicOperator
     | IntType Int
     | StringType String
+    deriving(Show)
+
+data LogicOperator
+    = AND
+    | OR
     deriving(Show)
 
 data RelOperator
@@ -37,57 +51,100 @@ data RelOperator
     | LESS_EQUAL
     deriving(Show)
 
+data AritmeticOperator
+   = PLUS
+   | MINUS
+   | MULTI
+   | DIV
+    deriving(Show)
 
 
 type Token = (Terminal, Maybe Attirbute)
 
+aphastroph = '\''
 
 scanner :: String -> [Token]
 scanner = s0
 
+
+-- 
 s0 :: String -> [Token]
 s0 [] = []
-s0 (x:[]) = []
-s0 ('<':'=':cs) = (ASSIGN, Nothing)    : s0 cs
-s0 ('>':'=':cs) = (RELOPR, Just (RelOperator GREATER_EQUAL)) : s0 cs
-s0 (':':'=':cs)     = (RELOPR, Just (RelOperator EQUAL))         : s0 cs
-s0 ('=':cs)     = (RELOPR, Just (RelOperator EQUAL))         : s0 cs
-s0 ('<':cs)     = (RELOPR, Just (RelOperator LESS))          : s0 cs
-s0 ('>':cs)     = (RELOPR, Just (RelOperator GREATER))       : s0 cs
-s0 ('(':cs)     = (LPAREN, Nothing)       : s0 cs
-s0 (')':cs)     = (RPAREN, Nothing)       : s0 cs
+
+s0 ('/':'\\':'?':cs) = (LOGICOPR, Just (LogicOperator AND))    : s0 cs
+s0 ('\\':'/':'?':cs) = (LOGICOPR, Just (LogicOperator OR))     : s0 cs
+
+s0 ('/':'/':cs) = let (s, token) = s1_comment cs in token: s0 s
+s0 (':':'=':cs) = (ASSIGN, Nothing) : s0 cs
+
+s0 ('>':'=':cs) = (RELOPR, Just (RelOperator GREATER_EQUAL))    : s0 cs
+s0 ('=':cs)     = (RELOPR, Just (RelOperator EQUAL))            : s0 cs
+s0 ('<':cs)     = (RELOPR, Just (RelOperator LESS))             : s0 cs
+s0 ('>':cs)     = (RELOPR, Just (RelOperator GREATER))          : s0 cs
+
+s0 ('+':cs)     = (ARITMOPR, Just (AritmeticOperator PLUS))              : s0 cs
+s0 ('-':cs)     = (ARITMOPR, Just (AritmeticOperator MINUS))             : s0 cs
+s0 ('/':cs)     = (ARITMOPR, Just (AritmeticOperator DIV))               : s0 cs
+s0 ('*':cs)     = (ARITMOPR, Just (AritmeticOperator MULTI))             : s0 cs
+
+s0 ('(':cs)     = (LPAREN, Nothing) : s0 cs
+s0 (')':cs)     = (RPAREN, Nothing) : s0 cs
+
+s0 (':':cs)     = (TYPEDEF, Nothing) : s0 cs
+s0 (';':cs)     = (SEMICOLON, Nothing) : s0 cs
+s0 (',':cs)     = (COMMA, Nothing) : s0 cs
+
 s0 (' ':cs)     = s0 cs
-s0 (c:cs)
-    | isAlpha c =
-        let x = s1 (c:cs)
-        in snd x : s0 (fst x)
-    | isDigit c = 
-        let x = s2 (c:cs)
-        in snd x : s0 (fst x)
+s0 ('\n':cs)    = s0 cs
+s0 ('\t':cs)    = s0 cs
+
+s0 all@(c:cs)
+    | isAlpha c = let (a,b) = s1_literal all in b : s0 a
+    | isDigit c = let (a,b) = s2_number all in b : s0 a
+    | otherwise = (UNKNOWN, Just (StringType [c])): s0 cs
 
 
-s1 :: String -> (String, Token)
-s1 x = 
-    let n = split x isLiteral 
-    in (snd n, (LITERAL, Just (StringType (fst n))))
+-- gives back comment
+s1_comment :: String -> (String, Token)
+s1_comment x = transformSplit (split x (/= '\n')) COMMENT StringType
 
-s2 :: String -> (String, Token)
-s2 x = 
-    let n = split x isDigit
-    in (snd n, (ALITERAL, Just (IntType (read (fst n) :: Int)))) -- todo: jku int needs to be fixed for larger numbers
+-- state checks string literals
+s1_literal :: String -> (String, Token)
+s1_literal x = transformSplit (split x isLiteral) LITERAL StringType
+
+-- state checks numbers
+s2_number :: String -> (String, Token)
+s2_number x = transformSplit (litNum, b) ALITERAL (\n -> IntType (read n :: Int))
+    where 
+        (a,b) = split x isNumber
+        litNum = remove a aphastroph
+
+transformSplit :: (String , String) -> Terminal -> (String -> Attirbute) -> (String, Token)
+transformSplit (a, b) attr fn = (b, (attr, Just (fn a)))
 
 
-isLiteral :: Char -> Bool 
-isLiteral c = isDigit c || isAlpha c
+-- is character a digit or a number
+isLiteral :: Char -> Bool
+isLiteral c = isDigit c || isAlpha c || c == aphastroph
+
+isNumber :: Char -> Bool
+isNumber c = isDigit c || isAlpha c || c == aphastroph
+
 
 -- split string by condition in (head, tail)
 split :: String -> (Char -> Bool) -> (String , String)
 split [] _ = ("", "")
 split (a:as) fn
-    | fn a = 
-         let n = split as fn 
-         in (a : fst n, snd n)
+    | fn a =
+         let (x, y) = split as fn
+         in (a : x, y)
     | otherwise = ("", a:as)
 
 
+-- removes character from string
+remove :: String -> Char ->  String
+remove [] _ = "" 
+remove (a:as) c 
+    | a == c = remove as c
+    | otherwise = a : remove as c
 
