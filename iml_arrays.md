@@ -13,7 +13,7 @@ Bei der Deklaration wird die Grösse in eine Variable gespeichert.
 Hier wäre dies `size = 100`
 
 
-Wertezuweisung an das Array a2 vom typ int[]
+Wertezuweisung an das Array `a2` vom Typ `int[]`
 
 ```typescript 
 a2[0] := 1;
