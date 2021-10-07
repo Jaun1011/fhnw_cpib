@@ -6,7 +6,7 @@ import Prelude (Show, Maybe (Just, Nothing), String, Int, snd, fst, ($), otherwi
 import GHC.Unicode (isAlpha, isDigit)
 import GHC.Float (fromRat'')
 import Data.Maybe
-import Language.Haskell.TH.Syntax (Callconv)
+--import Language.Haskell.TH.Syntax (Callconv)
 import Foreign (Int32)
 import Data.Int (Int64)
 
@@ -16,21 +16,15 @@ data Terminal
     | CALL
     | CONST
     | COPY
-    | DEBUGIN
-    | DEBUGOUT
+    | DEBUGIN | DEBUGOUT
     | DO
-    | ENDFUN
-    | ENDIF
-    | ENDPROC
-    | ENDPROGRAM
-    | ENDWHILE
-    | FALSE
+    | ENDFUN | ENDIF | ENDPROC | ENDPROGRAM | ENDWHILE
+    | TRUE | FALSE
     | FUN
     | GLOBAL
     | IF
     | IN
-    | INIT
-    | INOUT
+    | INIT | INOUT
     | LOCAL
     | OUT
     | PROC
@@ -39,27 +33,20 @@ data Terminal
     | RETURNS
     | SKIP
     | THEN
-    | TRUE
     | VAR
     | WHILE
     | COMMENT
     | ASSIGN
-    | LPAREN
-    | RPAREN
+    | LPAREN | RPAREN
     | BECOMES
     | SEMICOLON
     | COMMA
-    | RELOPR
-    | LOGICOPR
-    | ARITMOPR
-    | DIVOPR
+    | RELOPR | LOGICOPR | ARITMOPR | DIVOPR
     | ELSE
-    | LITERAL
-    | ALITERAL
+    | LITERAL | ALITERAL
     | TYPEDEF
     | UNKNOWN
     | MODE
-    
     deriving(Show)
 
 data Attirbute
@@ -68,12 +55,13 @@ data Attirbute
     | LogicOperator LogicOperator
     | DivOperator DivOperator
     | IntType Int
-
-    | Int1024 Int
-    | Int32 Int32
-    | Int64 Int64
-    
     | StringType String
+    deriving(Show)
+
+data Type
+    = INT32
+    | INT64
+    | INT1024
     deriving(Show)
 
 data LogicOperator
@@ -92,14 +80,12 @@ data RelOperator
     | NOT_EQUAL
     deriving(Show)
 
-
 data AritmeticOperator
    = PLUS
    | MINUS
    | MULTI
    | DIV
    deriving(Show)
-
 
 data DivOperator
     = DIV_E
@@ -110,7 +96,6 @@ data DivOperator
    | MOD_T
    deriving(Show)
  
-
 type Token = (Terminal, Maybe Attirbute)
 
 apastroph :: Char 
@@ -178,8 +163,6 @@ keyword "typedef"= (TYPEDEF, Nothing)
 keyword "unknown"= (UNKNOWN, Nothing)
 keyword c       = (LITERAL, Just $StringType c) 
 
-
-
 -- 
 s0 :: String -> [Token]
 s0 [] = []
@@ -202,20 +185,23 @@ s0 ('-':cs)     = (ARITMOPR, Just (AritmeticOperator MINUS))    : s0 cs
 s0 ('/':cs)     = (ARITMOPR, Just (AritmeticOperator DIV))      : s0 cs
 s0 ('*':cs)     = (ARITMOPR, Just (AritmeticOperator MULTI))    : s0 cs
 
-s0 ('(':cs)     = (LPAREN, Nothing)     : s0 cs
-s0 (')':cs)     = (RPAREN, Nothing)     : s0 cs
+s0 ('(':cs)     = (LPAREN, Nothing)                             : s0 cs
+s0 (')':cs)     = (RPAREN, Nothing)                             : s0 cs
 
-s0 (':':cs)     = (TYPEDEF, Nothing)    : s0 cs
-s0 (';':cs)     = (SEMICOLON, Nothing)  : s0 cs
-s0 (',':cs)     = (COMMA, Nothing)      : s0 cs
+s0 (':':cs)     = (TYPEDEF, Nothing)                            : s0 cs
+s0 (';':cs)     = (SEMICOLON, Nothing)                          : s0 cs
+s0 (',':cs)     = (COMMA, Nothing)                              : s0 cs
 
-s0 ('!':cs)     = (DEBUGOUT, Nothing)   : s0 cs
-s0 ('?':cs)     = (DEBUGIN, Nothing)    : s0 cs
+s0 ('!':cs)     = (DEBUGOUT, Nothing)                           : s0 cs
+s0 ('?':cs)     = (DEBUGIN, Nothing)                            : s0 cs
+s0 ('%':cs)     = (MODE, Nothing)                               : s0 cs
+s0 ('&':cs)     = (LOGICOPR, Just (LogicOperator AND))          : s0 cs
+s0 ('^':cs)     = (LOGICOPR, Just (LogicOperator XOR))          : s0 cs
+s0 ('|':cs)     = (LOGICOPR, Just (LogicOperator OR))           : s0 cs
+s0 ('~':cs)     = (LOGICOPR, Just (LogicOperator NOT))          : s0 cs
 --0 ('"':cs)     = (, Nothing)      : s0 cs
 --s0 ('#':cs)     = (Nothing, Nothing)      : s0 cs
 --s0 ('$':cs)     = (Nothing, Nothing)      : s0 cs
-s0 ('%':cs)     = (MODE, Nothing)       : s0 cs
-s0 ('&':cs)     = (LOGICOPR, Just (LogicOperator AND))      : s0 cs
 --s0 ('`':cs)     = (Nothing, Nothing)      : s0 cs
 --s0 ('_':cs)     = (Nothing, Nothing)      : s0 cs
 --s0 ('.':cs)     = (Nothing, Nothing)      : s0 cs
@@ -223,12 +209,8 @@ s0 ('&':cs)     = (LOGICOPR, Just (LogicOperator AND))      : s0 cs
 --s0 ('[':cs)     = (Nothing, Nothing)      : s0 cs
 --s0 (']':cs)     = (Nothing, Nothing)      : s0 cs
 --s0 ('\\':cs)     = (Nothing, Nothing)      : s0 cs
-s0 ('^':cs)     = (LOGICOPR, Just (LogicOperator XOR))      : s0 cs
 --s0 ('{':cs)     = (Nothing, Nothing)      : s0 cs
 --s0 ('}':cs)     = (Nothing, Nothing)      : s0 cs
-s0 ('|':cs)     = (LOGICOPR, Just (LogicOperator OR))      : s0 cs
-s0 ('~':cs)     = (LOGICOPR, Just (LogicOperator NOT))      : s0 cs
-
 s0 (' ':cs)     = s0 cs
 s0 ('\n':cs)    = s0 cs
 s0 ('\t':cs)    = s0 cs
@@ -281,4 +263,3 @@ remove [] _ = ""
 remove (a:as) c 
     | a == c = remove as c
     | otherwise = a : remove as c
-
