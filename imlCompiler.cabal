@@ -9,16 +9,15 @@ version:        0.1.0.0
 description:    Please see the README on GitHub at <https://github.com/githubuser/imlCompiler#readme>
 homepage:       https://github.com/githubuser/imlCompiler#readme
 bug-reports:    https://github.com/githubuser/imlCompiler/issues
-author:         Author name here
-maintainer:     example@example.com
-copyright:      2021 Author name here
+author:         Jan Kuonen, Ismail Cadarosky
+maintainer:     jan@jku.one
+copyright:      2021 Jan Kuonen, Ismail Cadarosky
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
     README.md
     ChangeLog.md
-    src/Scanner.hs
 
 source-repository head
   type: git
@@ -28,6 +27,7 @@ library
   exposed-modules:
       List
       Model
+      Parser
       Scanner
   other-modules:
       Paths_imlCompiler

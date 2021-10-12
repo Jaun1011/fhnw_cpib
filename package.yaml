@@ -2,14 +2,13 @@ name:                imlCompiler
 version:             0.1.0.0
 github:              "githubuser/imlCompiler"
 license:             BSD3
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2021 Author name here"
+author:              "Jan Kuonen, Ismail Cadarosky"
+maintainer:          "jan@jku.one"
+copyright:           "2021 Jan Kuonen, Ismail Cadarosky"
 
 extra-source-files:
 - README.md
 - ChangeLog.md
-- src/Scanner.hs
 
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
