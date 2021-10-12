@@ -8,41 +8,31 @@ import List (find, split)
 
 data Terminal
     = IDENT
-    | BOOL
     | CALL
-    | CONST
-    | COPY
-    | DEBUGIN | DEBUGOUT
-    | DO
-    | ENDFUN | ENDIF | ENDPROC | ENDPROGRAM | ENDWHILE
-    | TRUE | FALSE
-    | FUN
-    | GLOBAL
-    | IF
-    | IN
-    | INIT | INOUT
-    | LOCAL
-    | OUT
-    | PROC
     | PROGRAM
-    | REF
-    | RETURNS
     | SKIP
-    | THEN
-    | VAR
-    | WHILE
     | COMMENT
     | ASSIGN
-    | LPAREN | RPAREN
     | BECOMES
-    | SEMICOLON
-    | COMMA
-    | RELOPR | LOGICOPR | ARITMOPR | DIVOPR
-    | ELSE
-    | LITERAL | ALITERAL
+    | COPY
     | TYPEDEF
     | UNKNOWN
     | MODE
+    | VAR | CONST 
+    | DEBUGIN | DEBUGOUT
+    | DO | WHILE
+    | BOOL| TRUE | FALSE
+    | FUN | RETURNS
+    | IF | THEN | ELSE 
+    | IN | OUT
+    | INIT | INOUT
+    | LOCAL | GLOBAL
+    | PROC | REF
+    | LPAREN | RPAREN
+    | SEMICOLON | COMMA
+    | LITERAL | ALITERAL
+    | RELOPR | LOGICOPR | ARITMOPR | DIVOPR
+    | ENDFUN | ENDIF | ENDPROC | ENDPROGRAM | ENDWHILE
     deriving(Show)
 
 data Attirbute
