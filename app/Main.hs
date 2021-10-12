@@ -4,5 +4,5 @@ import Scanner (scanner)
 
 main :: IO ()
 main = do
-    text <- readFile "../programs/Factorial.iml"
+    text <- readFile "../test/programs/Factorial.iml"
     print $scanner text
