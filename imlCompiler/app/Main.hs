@@ -1,6 +1,6 @@
 module Main where
 
-import Scanner
+import Scanner (scanner)
 
 main :: IO ()
 main = do
