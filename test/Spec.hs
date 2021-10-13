@@ -3,14 +3,9 @@ import Test.HUnit ( assertEqual, runTestTT, Test(..), Assertion )
 import Model (Terminal(..), Attirbute (..), Token)
 
 
-assertScanner :: Assertion
-assertScanner  = assertEqual "" LITERAL LITERAL 
-
 
 test_scanner :: String -> [Token] -> Test
 test_scanner i t = TestCase (assertEqual ("scanner string: " ++ i) (scanner i) t)
-
-
 
 scannerTestSet :: [(String, [Token])]
 scannerTestSet = [("1234", [(ALITERAL, Just (StringType "1234"))])
@@ -18,7 +13,6 @@ scannerTestSet = [("1234", [(ALITERAL, Just (StringType "1234"))])
                  ,(";", [(SEMICOLON , Nothing)])
                  ,("if", [(IF , Nothing)])
                  ]
-
 
 testlabel :: (String, [Token]) -> Test
 testlabel (s,t) = TestLabel "scanner" (test_scanner s t) 
