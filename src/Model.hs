@@ -8,7 +8,6 @@ import Data.Maybe
 --import Language.Haskell.TH.Syntax (Callconv)
 import Data.Int (Int32, Int64)
 import List (find, split)
-import Test.HUnit
 
 data Terminal
     = IDENT
@@ -87,10 +86,6 @@ data DivOperator
    deriving(Show, Eq)
  
 type Token = (Terminal, Maybe Attirbute)  
-
-
-assertScanner :: Assertion
-assertScanner  = assertEqual "" LITERAL LITERAL
 
 keywords :: [(String, Token)]
 keywords = 
