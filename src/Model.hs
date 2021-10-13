@@ -1,10 +1,14 @@
+{-# LANGUAGE TemplateHaskell #-}
+
+
 module Model (Token, Terminal(..), Attirbute(..), transformKeyword, specialChars) where
 
-import Prelude (Show, Maybe (Just, Nothing), String, Int, snd, fst, ($), otherwise, (||), Char, Bool, Eq ((==), (/=)), read, ($), (.), not)
+import Prelude (Show, Maybe (Just, Nothing), String, Int, snd, fst, ($), otherwise, (||), Char, Bool (True), Eq ((==), (/=)), read, ($), (.), not)
 import Data.Maybe
 --import Language.Haskell.TH.Syntax (Callconv)
 import Data.Int (Int32, Int64)
 import List (find, split)
+import Test.HUnit
 
 data Terminal
     = IDENT
@@ -33,7 +37,7 @@ data Terminal
     | LITERAL | ALITERAL
     | RELOPR | LOGICOPR | ARITMOPR | DIVOPR
     | ENDFUN | ENDIF | ENDPROC | ENDPROGRAM | ENDWHILE
-    deriving(Show)
+    deriving(Show, Eq)
 
 data Attirbute
     = RelOperator RelOperator
@@ -42,20 +46,20 @@ data Attirbute
     | DivOperator DivOperator
     | IntType Int
     | StringType String
-    deriving(Show)
+    deriving(Show, Eq)
 
 data Type
     = INT32
     | INT64
     | INT1024
-    deriving(Show)
+    deriving(Show, Eq)
 
 data LogicOperator
     = AND
     | OR
     | XOR
     | NOT
-    deriving(Show)
+    deriving(Show, Eq)
 
 data RelOperator
     = GREATER
@@ -64,14 +68,14 @@ data RelOperator
     | GREATER_EQUAL
     | LESS_EQUAL
     | NOT_EQUAL
-    deriving(Show)
+    deriving(Show, Eq)
 
 data AritmeticOperator
    = PLUS
    | MINUS
    | MULTI
    | DIV
-   deriving(Show)
+   deriving(Show, Eq)
 
 data DivOperator
     = DIV_E
@@ -80,9 +84,13 @@ data DivOperator
    | MOD_E
    | MOD_F
    | MOD_T
-   deriving(Show)
+   deriving(Show, Eq)
  
-type Token = (Terminal, Maybe Attirbute)
+type Token = (Terminal, Maybe Attirbute)  
+
+
+assertScanner :: Assertion
+assertScanner  = assertEqual "" LITERAL LITERAL
 
 keywords :: [(String, Token)]
 keywords = 
