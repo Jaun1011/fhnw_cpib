@@ -10,6 +10,7 @@ scannerTestSet =
   [("1234", [(ALITERAL, Just (StringType "1234"))])
   ,("asdf", [(LITERAL, Just (StringType "asdf"))])
   ,(";", [(SEMICOLON , Nothing)])
+  ,("else", [(ELSE , Nothing)])
   ,("if", [(IF , Nothing)])
   ,("if true then asdf else 1234", [
       (IF,Nothing),(TRUE,Nothing),

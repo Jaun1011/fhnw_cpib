@@ -39,5 +39,5 @@ fnLiteral :: Char -> (Char -> Bool, Terminal)
 fnLiteral c 
     | isAlpha c = (isLiteral, LITERAL)
     | isDigit c = (isNumber, ALITERAL)
-    | otherwise = (const True, UNKNOWN)
+    | otherwise = (const False, UNKNOWN)
     

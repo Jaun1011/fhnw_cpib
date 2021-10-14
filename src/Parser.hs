@@ -1,8 +1,7 @@
 module Parser () where
 
 import Model (Token)
+import Scanner (scanner)
 
-data Tree a
-    = Tree Token
 
-parseExpression :: [Token] -> Tree
+parseExpr :: [Token] -> Expression
