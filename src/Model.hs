@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 
-module Model (Token, Terminal(..), Attirbute(..), transformKeyword, specialChars) where
+module Model (Token, Terminal(..), Attirbute(..), transformKeyword, specialChars, AritmeticOperator(..)) where
 
 import Prelude (Show, Maybe (Just, Nothing), String, Int, snd, fst, ($), otherwise, (||), Char, Bool (True), Eq ((==), (/=)), read, ($), (.), not)
 import Data.Maybe
@@ -75,6 +75,8 @@ data AritmeticOperator
    | MULTI
    | DIV
    deriving(Show, Eq)
+
+
 
 data DivOperator
     = DIV_E
@@ -177,4 +179,6 @@ specialChars ('&':cs) = (cs,Just (LOGICOPR, Just (LogicOperator AND)))
 specialChars ('^':cs) = (cs,Just (LOGICOPR, Just (LogicOperator XOR)))
 specialChars ('|':cs) = (cs,Just (LOGICOPR, Just (LogicOperator OR)) )
 specialChars ('~':cs) = (cs,Just (LOGICOPR, Just (LogicOperator NOT)))
+specialChars ('.':cs) = (cs,Just (UNKNOWN, Nothing))
+
 specialChars n = (n, Nothing)
