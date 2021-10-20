@@ -11,3 +11,5 @@
 - [ ] Tests erstellen 
 - [ ] main
 
+## Shuting Jard
+https://en.wikipedia.org/wiki/Shunting-yard_algorithm
