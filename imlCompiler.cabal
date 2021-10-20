@@ -28,6 +28,7 @@ library
       List
       Model
       Parser
+      ParsingLib
       Scanner
   other-modules:
       Paths_imlCompiler
