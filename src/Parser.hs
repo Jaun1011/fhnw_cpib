@@ -1,4 +1,5 @@
 import ParsingLib
+import Model (Terminal(ENDIF))
 
 
 --expr ::= term expr + | term
@@ -38,16 +39,16 @@ data BoolExpr =
   deriving Show
 
 data CondExpr = 
-  IF CondExpr CondExpr (Maybe CondExpr)
+  IF CondExpr CondExpr (Maybe CondExpr) 
   | IFELSE CondExpr CondExpr 
-
-
 
 data IExpr = 
   IConst Int 
   | IMul IExpr IExpr
   | IAdd IExpr IExpr 
   deriving Show
+
+
 
 a :: IExpr
 a = IAdd (IMul (IConst 2) (IConst 3)) (IConst 4)
@@ -56,4 +57,3 @@ eval :: IExpr -> Int
 eval (IConst i) = i
 eval (IMul lhs rhs) = eval lhs * eval rhs
 eval (IAdd lhs rhs) = eval lhs + eval rhs
-

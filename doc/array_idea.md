@@ -1,5 +1,34 @@
 # Arrays in IML
 
+## Zwischenbericht
+
+Jan Kuonen, Ismail Cadaroski
+
+Compilerbau, HS2021, Team CK
+
+Beide Studierenden beteiligen sich gleichermassen am Projekt.
+
+---
+
+
+## Abstract
+
+## Idee der Erweiterung mit konkreten Beispielen
+
+## Lexikalischer Syntax
+
+## Grammatikalischer Syntax
+
+### Prüfung durch Fix&Foxi
+
+## Kontext- und Typeinschränkung
+
+## Vergleich mit anderen Programmiersprachen
+
+## Enwurfsalternativen
+
+---
+
 ## Deklaration und Instanzierung
 
 `int` ist hier stellvertretend für alle möglichen variablen.
@@ -32,14 +61,14 @@ print(a2[0]); // 1
 
 ## Schnellzuweisung (Optional)
 
-Eine zusätzliche Idee ist dass Arrays bei der Deklaration abgefüllt werden können
+Eine zusätzliche Idee ist, dass Arrays bei der Deklaration abgefüllt werden können. Falls die beiden Anzahlen nicht übereinstimmen, wird zur Laufzeit ein Fehler geworfen.
 
 ```typescript 
 a:int[4] := [1,2,3,4];
 ```
 
 ### Syntax Sugar
-Es soll möglich sein, bei einer direkten Zuweisung keine Grösse des Arrays anzugeben. Hierbei wird die Grösse des Zugewiesenen Arrays genommen.
+Es soll möglich sein, bei einer Deklaration keine Grösse des Arrays anzugeben. Hierbei wird die Grösse des zugewiesenen Arrays genommen.
 
 ```typescript
 a:int[] := [1,2,3,4];
@@ -47,12 +76,13 @@ a:int[] := [1,2,3,4];
 
 ## Fehlerbehandlung
 
-Bei einem Zugriff auf ein Element ausserhalb des deklarierten Bereichs wird zur **Laufzeit** ein `Index Out Of Bound` Fehler geworfen.
+Bei einem Zugriff auf ein Element ausserhalb des deklarierten Bereichs wird zur **Laufzeit** ein `Index Out Of Bound` Fehler geworfen. 
 
 ```typescript 
 a1[99]; // => null
 a2[100]; // out of bound error
 ```
+"Null" ist hierbei die Zahl 0 welche beim Erstellen des Arrays in alle Blöcke gefüllt wird.
 
 ## Technische Details
 ### Speicherallocation
@@ -83,10 +113,13 @@ Daraus folgt folgende Kalkulation
 
 ## Datentyp
 
-Es soll ein ArrayType erstellt werden in welchem die Länge des Arrays gespeichert ist.
+Es soll ein ArrayType erstellt werden, in welchem die Länge des Arrays gespeichert ist und jene Länge zum Datentyp gehört. 
 
 ```haskell
 data ArrayType 
     = value: [DataType]
     | size: Int
 ```
+
+
+## Quellenverzeichnis
