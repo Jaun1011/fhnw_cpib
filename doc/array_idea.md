@@ -114,8 +114,10 @@ data ArrayType
 ---
 ## Lexikalischer Syntax
 
-Der Array wird folgendermassen definiert:
- array ::= '['[ <expr> ]']'
+Der Array wird folgendermassen mit einer Expression und den dafür benötigten Klammern definiert: 
+    
+    array ::= '['[ <expr> ]']'
+
 ---
 ## Grammatikalischer Syntax
 ---
