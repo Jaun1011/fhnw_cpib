@@ -12,24 +12,13 @@ Beide Studierenden beteiligen sich gleichermassen am Projekt.
 
 
 ## Abstract
+Das Ziel dieser Erweiterung ist es, den Compiler durch folgende Elemente auszubauen:
+- Lexikalische Erweiterung und Repräsentation von Arrays
+- Den Array mit Variablen des deklarierten types befüllen
+- Die grösse des Arrays nicht bei der Deklaration zuweisen zu müssen.
 
 ## Idee der Erweiterung mit konkreten Beispielen
-
-## Lexikalischer Syntax
-
-## Grammatikalischer Syntax
-
-### Prüfung durch Fix&Foxi
-
-## Kontext- und Typeinschränkung
-
-## Vergleich mit anderen Programmiersprachen
-
-## Enwurfsalternativen
-
----
-
-## Deklaration und Instanzierung
+### Deklaration und Instanziierung
 
 `int` ist hier stellvertretend für alle möglichen variablen.
 Das Array kann nur mit Variablen deklarierten typ befüllt werden.
@@ -51,7 +40,7 @@ a2[99] := 2;
 
 Die Wertezuweisung muss jeweils zur Laufzeit geprüft werden. Hierbei muss das Objekt ArrayType in JVM Code übersetzt werden.
 
-## Zugriff
+### Zugriff
 
 Um auf ein Element im Array zugreifen zu können
 
@@ -59,7 +48,7 @@ Um auf ein Element im Array zugreifen zu können
 print(a2[0]); // 1
 ```
 
-## Schnellzuweisung (Optional)
+### Schnellzuweisung (Optional)
 
 Eine zusätzliche Idee ist, dass Arrays bei der Deklaration abgefüllt werden können. Falls die beiden Anzahlen nicht übereinstimmen, wird zur Laufzeit ein Fehler geworfen.
 
@@ -67,14 +56,15 @@ Eine zusätzliche Idee ist, dass Arrays bei der Deklaration abgefüllt werden k�
 a:int[4] := [1,2,3,4];
 ```
 
-### Syntax Sugar
+#### Syntax Sugar
+
 Es soll möglich sein, bei einer Deklaration keine Grösse des Arrays anzugeben. Hierbei wird die Grösse des zugewiesenen Arrays genommen.
 
 ```typescript
 a:int[] := [1,2,3,4];
 ```
 
-## Fehlerbehandlung
+### Fehlerbehandlung
 
 Bei einem Zugriff auf ein Element ausserhalb des deklarierten Bereichs wird zur **Laufzeit** ein `Index Out Of Bound` Fehler geworfen. 
 
@@ -84,8 +74,8 @@ a2[100]; // out of bound error
 ```
 "Null" ist hierbei die Zahl 0 welche beim Erstellen des Arrays in alle Blöcke gefüllt wird.
 
-## Technische Details
-### Speicherallocation
+### Technische Details
+#### Speicherallocation
 
 Der Speicher muss linear alloziert werden.
 Das Array benötigt hierbei zwei Parameter:`
@@ -111,7 +101,7 @@ Daraus folgt folgende Kalkulation
     s := d * p = 32 * 10 = 320
 
 
-## Datentyp
+### Datentyp
 
 Es soll ein ArrayType erstellt werden, in welchem die Länge des Arrays gespeichert ist und jene Länge zum Datentyp gehört. 
 
@@ -120,6 +110,26 @@ data ArrayType
     = value: [DataType]
     | size: Int
 ```
+
+---
+## Lexikalischer Syntax
+
+Der Array wird folgendermassen definiert:
+ array ::= '['[ <expr> ]']'
+---
+## Grammatikalischer Syntax
+---
+### Prüfung durch Fix&Foxi
+---
+## Kontext- und Typeinschränkung
+---
+## Vergleich mit anderen Programmiersprachen
+---
+## Enwurfsalternativen
+
+---
+
+
 
 
 ## Quellenverzeichnis
