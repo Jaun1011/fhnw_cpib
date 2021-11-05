@@ -10,7 +10,6 @@ Beide Studierenden beteiligen sich gleichermassen am Projekt.
 
 ---
 
-
 ## Abstract
 Das Ziel dieser Erweiterung ist es, den Compiler durch folgende Elemente auszubauen:
 - Lexikalische Erweiterung und Repräsentation von Arrays
@@ -70,17 +69,6 @@ Daraus folgt folgende Kalkulation
     p := size_array = 10
     s := d * p = 32 * 10 = 320
 
-
-### Datentyp
-
-Es soll ein ArrayType erstellt werden, in welchem die Länge des Arrays gespeichert ist und jene Länge zum Datentyp gehört. 
-
-```haskell
-data ArrayType 
-    = value: [DataType]
-    | size: Int
-```
-
 ---
 ## Lexikalischer Syntax
 
@@ -101,7 +89,7 @@ a:int[4] := [1,2,3,4];
 
 Typendeklaration:
 
-Der Typ wird lexikalisch als  deklariert, welche als Subtyp des <type> gilt und simit die Grammatik wie folgt erweitert:
+Der Typ wird lexikalisch als arraytype deklariert, welche als Subtyp des <type> gilt und simit die Grammatik wie folgt erweitert:
 
 ```typescript 
 <type> ::= <primtype> | <arraytype>;
@@ -120,17 +108,29 @@ a2[99] := 2;
 ```
 ---
 ## Grammatikalischer Syntax
+Grammatikalisch geschahen ausserhalb der Aufbaustruktur des Arrays keine Änderungen.
 
+```typescript 
 array ::= '['[ <expr> ]']'
+```
+
 ---
 ### Prüfung durch Fix&Foxi
 ---
-## Kontext- und Typeinschränkung
----
 ## Vergleich mit anderen Programmiersprachen
+### Arrays in Haskell:
+In Haskell werden Arrays Abstrakte Datentypen behandelt.
+
+
+### Arrays in Java:
+
+In Java wird der Array als Container Objekt mit einer fixen Anzahl eines einzigen Typs vorausgesetzt, was unsere Implementation gleicht. Jedoch wird es in unserer Umsetzung möglich sein Arrays auch ohne eine vordefinierte Grösse zu Deklarieren. 
+
 ---
 ## Enwurfsalternativen
 
 ---
 
 ## Quellenverzeichnis
+1) The Java Tutorials, "Arrays", [Online, abgerufen am 01.11.2021]. Verfügbar unter : https://docs.oracle.com/javase/tutorial/java/nutsandbolts/arrays.html
+2) A Gentle Introduction to Haskell, Version 98, "13 Arrays", [Online, abgerufen am 01.11.2021]. Verfügbar unter: https://www.haskell.org/tutorial/arrays.html
