@@ -31,38 +31,8 @@ Bei der Deklaration wird die Grösse in eine Variable gespeichert.
 Hier wäre dies `size = 100`
 
 
-Wertezuweisung an das Array `a2` vom Typ `int[]`
-
-```typescript 
-a2[0] := 1;
-a2[99] := 2;
-```
-
 Die Wertezuweisung muss jeweils zur Laufzeit geprüft werden. Hierbei muss das Objekt ArrayType in JVM Code übersetzt werden.
 
-### Zugriff
-
-Um auf ein Element im Array zugreifen zu können
-
-```typescript 
-print(a2[0]); // 1
-```
-
-### Schnellzuweisung (Optional)
-
-Eine zusätzliche Idee ist, dass Arrays bei der Deklaration abgefüllt werden können. Falls die beiden Anzahlen nicht übereinstimmen, wird zur Laufzeit ein Fehler geworfen.
-
-```typescript 
-a:int[4] := [1,2,3,4];
-```
-
-#### Syntax Sugar
-
-Es soll möglich sein, bei einer Deklaration keine Grösse des Arrays anzugeben. Hierbei wird die Grösse des zugewiesenen Arrays genommen.
-
-```typescript
-a:int[] := [1,2,3,4];
-```
 
 ### Fehlerbehandlung
 
@@ -114,12 +84,44 @@ data ArrayType
 ---
 ## Lexikalischer Syntax
 
-Der Array wird folgendermassen mit einer Expression und den dafür benötigten Klammern definiert: 
+Arrays sollen über folgende Repräsentation zulässig sein:
     
     array ::= '['[ <expr> ]']'
 
+Beipiele für zulässige Arrays wären:
+
+Deklaration ohne Grössenangabe:
+```typescript
+a:int[] := [1,2,3,4];
+```
+Deklaration mit Grössenangabe:
+```typescript 
+a:int[4] := [1,2,3,4];
+```
+
+Typendeklaration:
+
+Der Typ wird lexikalisch als  deklariert, welche als Subtyp des <type> gilt und simit die Grammatik wie folgt erweitert:
+
+```typescript 
+<type> ::= <primtype> | <arraytype>;
+
+<primtype> ::= <booltype> | <inttype>;
+<booltype> ::= bool;
+<inttype> ::= int32 | int64 | int1024;
+
+<arraytype> ::= <primtype> '[' <intlit> ']';
+```
+Wertezuweisung an das Array `a2` vom Typ `int[]`
+
+```typescript 
+a2[0] := 1;
+a2[99] := 2;
+```
 ---
 ## Grammatikalischer Syntax
+
+array ::= '['[ <expr> ]']'
 ---
 ### Prüfung durch Fix&Foxi
 ---
@@ -130,8 +132,5 @@ Der Array wird folgendermassen mit einer Expression und den dafür benötigten K
 ## Enwurfsalternativen
 
 ---
-
-
-
 
 ## Quellenverzeichnis
