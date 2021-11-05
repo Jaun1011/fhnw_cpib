@@ -1,0 +1,135 @@
+
+
+(*# regular definitions*)
+(*## printable characters*)
+<digit> ::= [0-9];
+<lowercase> ::= [a - z];
+<uppercase> ::= [A - Z];
+<letter> ::= <lowercase> | <uppercase>;
+
+<special> ::= '!' | '"' | '#' | '$' | '%' | '&' | '\''
+            | '(' | ')' | '*' | '+' | ',' | '-' | '.' 
+            | '/' | ':' | ';' | '<' | '=' | '>' | '?' 
+            | '@' | '[' | '\' | ']' | '^' | '_' | '' 
+            | '{' | '|' | '}' | '~';
+<space> ::= ' ' | '\t' ; 
+<printable> ::= <digit> | <letter> | <special> | <space>;
+
+(*## Comments, Whitespaces*)
+<linefeed> ::= '\n';
+<carriet> ::= '\r';
+<newline> ::= <linefeed> |<carriet> <linefeed>;
+<whitebase> ::= <space> |<newline>;
+<comment> ::= '//' <printable>*;
+<whitespace> ::= (<whitebase> | <comment>);
+
+(*## Reserved Identifiers, Symbols*)
+<reservedid> ::= bool 
+                | call | const | copy | debugin | debugout 
+                | divE | divF | divT | do | else | endfun | endif 
+                | endproc | endprogram | endwhile | false | fun 
+                | global | if | in | init | inout | int1024 | int32 
+                | int64 | local | modE | modF | modT | not | out 
+                | proc | program | ref | returns | skip | then 
+                | true | var | while;
+
+<symbol> ::= '(' | ',' | ')' | ':' | ';' | ':=' | '/\?' | '\/?' | '=' | '/=' |
+'<' | '>' | '<=' | '>=' | '+' | '-' | '*';
+
+
+(*## Literals, Identifiers*)
+<boollit> ::= false | true;
+<intlit> ::= <digit> + ( '\'' ( '\'' | <whitebase>) * <digit>+)∗;
+<literal> ::= <boollit> | <intlit>;
+<ident> ::= ( <letter> ( <letter> | <digit> | '_' | ''') ∗ ) <reservedid> ['[' <intlit> ']'];
+
+<lexeme> ::= <reservedid> | <symbol> | <literal> | <ident> | <whitespace>;
+<lexemes> ::= <lexeme> ∗;
+
+
+
+(*# Top Level*)
+(*## programs*)
+<program> ::= program <ident> <progrParamList> [global <cpsDecl>] 
+            do <cpsCmd> endprogram;
+
+
+(*## modes*)
+<flowmode> ::= in | out | inout;
+<mechmode> ::= copy | ref;
+<changemode> ::= const | var;
+
+
+(*## Types*)
+<type> ::= <primtype> | <arraytype>;
+
+<primtype> ::= <booltype> | <inttype>;
+<booltype> ::= bool;
+<inttype> ::= int32 | int64 | int1024;
+
+<arraytype> ::= <primtype> '[' <intlit> ']';
+
+
+(*## Parameter List*)
+<progParamList> ::= '(' [<progParam> {',' <progParam>}] ')';
+<progParam> ::= [<flowmode>] [<changemode>] <typedIdent>;
+<paramList> ::= '(' [<param> {',' <param>}] ')';
+<param> ::= [<flowmode>] [<mechmode>] [<changemode>] <typedIdent>;
+<typedIdent> ::= <ident> ':' <type>;
+
+
+(*## Declarations*)
+<decl> ::= <stoDecl> | <funDecl> | <procDecl>;
+<stoDecl> ::= [<changemode>] <typedIdent>;
+
+<funDecl> ::= fun <ident> <paramList> returns <stoDecl> 
+            | [global <globImps>] [local <cpsStoDecl>]
+            | do <cpsCmd> endproc;
+
+<procDecl> ::= proc <ident> <paramList> 
+            [global <globImps>] [local <cpsStoDecl>]
+            do <cpsCmd> endproc;
+
+<globImps> ::= <globImp> {',' <globImp>};
+<globImp> ::= [<flowmode>] [<changemode>] <ident>;
+<cpsDecl> ::= <decl> {';' <decl>};
+<cpsStoDecl> ::= <stoDecl> {';' <stoDecl>};
+
+
+(*## Commands*)
+<cmd> ::= skip 
+        | <expr> ':=' <expr>
+        | if <expr> then <cpsCmd>
+          [else <cpsCmd>] endif
+        | while <expr> do <cpsCmd> endwhile
+        | call <ident> <exprList> [<globInits>]
+        | debugin <expr>
+        | debugout <expr>;
+
+
+<cpsCmd> ::= <cmd> {';' <cmd>};
+<globInits ::= init <ident> {',' <ident>};
+
+
+(*## Expression*)
+<expr> ::= <term1> ({'/\?' <term1>} | {'\/?' <term1>});
+<term1> ::= <term2> [<relopr> <term2>];
+<term2> ::= <term3> {<addopr> <term3>};
+
+<term3> ::= <factor> {<multopr> <factor>};
+<factor> ::= <literal>
+        | <ident> [init | <exprList>]
+        | <monopr> <factor>
+        | '(' <expr> ')';
+
+<exprList> ::= '(' [<expr> {',' <expr>}] ')';
+
+
+(*## operators*)
+<relopr> ::= '=' | '/=' | '<' | '>' | '<=' | '>=';
+<addopr> ::= '+' | '-';
+<multopr> ::= '*' | <divopr>;
+<divopr> ::= divE | modE | divF | modF | divT | modT;
+<monopr> ::= not | <addopr>;
+
+
