@@ -2,7 +2,7 @@
 
 (*# regular definitions*)
 (*## printable characters*)
-<digit> ::= [0-9];
+<digit> ::= [0 - 9];
 <lowercase> ::= [a - z];
 <uppercase> ::= [A - Z];
 <letter> ::= <lowercase> | <uppercase>;
@@ -12,13 +12,14 @@
             | '/' | ':' | ';' | '<' | '=' | '>' | '?' 
             | '@' | '[' | '\' | ']' | '^' | '_' | '' 
             | '{' | '|' | '}' | '~';
+
 <space> ::= ' ' | '\t' ; 
 <printable> ::= <digit> | <letter> | <special> | <space>;
 
 (*## Comments, Whitespaces*)
 <linefeed> ::= '\n';
 <carriet> ::= '\r';
-<newline> ::= <linefeed> |<carriet> <linefeed>;
+<newline> ::= <linefeed> | <carriet> <linefeed>;
 <whitebase> ::= <space> |<newline>;
 <comment> ::= '//' <printable>*;
 <whitespace> ::= (<whitebase> | <comment>);
@@ -33,8 +34,7 @@
                 | proc | program | ref | returns | skip | then 
                 | true | var | while;
 
-<symbol> ::= '(' | ',' | ')' | ':' | ';' | ':=' | '/\?' | '\/?' | '=' | '/=' |
-'<' | '>' | '<=' | '>=' | '+' | '-' | '*';
+<symbol> ::= '(' | ',' | ')' | ':' | ';' | ':=' | '/\?' | '\/?' | '=' | '/=' | '<' | '>' | '<=' | '>=' | '+' | '-' | '*';
 
 
 (*## Literals, Identifiers*)
@@ -52,7 +52,6 @@
 (*## programs*)
 <program> ::= program <ident> <progrParamList> [global <cpsDecl>] 
             do <cpsCmd> endprogram;
-
 
 (*## modes*)
 <flowmode> ::= in | out | inout;
