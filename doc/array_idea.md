@@ -70,11 +70,14 @@ Daraus folgt folgende Kalkulation
     s := d * p = 32 * 10 = 320
 
 ---
+
+
 ## Lexikalischer Syntax
 
 Arrays sollen über folgende Repräsentation zulässig sein:
     
-    array ::= '['[ <expr> ]']'
+    
+    <arraytype> ::= <primtype> '[' <intlit> ']';
 
 Beipiele für zulässige Arrays wären:
 
@@ -91,7 +94,7 @@ Typendeklaration:
 
 Der Typ wird lexikalisch als arraytype deklariert, welche als Subtyp des <type> gilt und somit die Grammatik wie folgt erweitert:
 
-```typescript 
+```typescript
 <type> ::= <primtype> | <arraytype>;
 
 <primtype> ::= <booltype> | <inttype>;
@@ -106,21 +109,19 @@ Wertezuweisung an das Array `a2` vom Typ `int[]`
 a2[0] := 1;
 a2[99] := 2;
 ```
+
 ---
 ## Grammatikalischer Syntax
 Grammatikalisch geschahen ausserhalb der Aufbaustruktur des Arrays keine Änderungen.
-
-```typescript 
-array ::= '['[ <expr> ]']'
-```
 
 ---
 ### Prüfung durch Fix&Foxi
 ---
 ## Vergleich mit anderen Programmiersprachen
-### Arrays in Haskell:
-In Haskell werden Arrays als Abstrakte Datentypen behandelt. Die Array Erstellungsfunktion Formt einen Array aus eine Paar von Bounds und einer Liste von Index-Value-Paaren (Associative Liste). 
 
+### Arrays in Haskell:
+
+In Haskell werden Arrays als Abstrakte Datentypen behandelt. Die Array Erstellungsfunktion Formt einen Array aus einem Paar von Bounds und einer Liste von Index-Value-Paaren (Associative Liste).
 Ein Beispiel hierfür wäre:
 ```typescript
 array :: (Ix a) => (a,a) -> [(a,b)] -> Array a b
@@ -138,13 +139,10 @@ int[] anArray;
 // allocates memory for 10 integers
 anArray = new int[10];
 ```
----
-## Enwurfsalternativen
-
-???
 
 ---
 
 ## Quellenverzeichnis
 1) The Java Tutorials, "Arrays", [Online, abgerufen am 01.11.2021]. Verfügbar unter : https://docs.oracle.com/javase/tutorial/java/nutsandbolts/arrays.html
+
 2) A Gentle Introduction to Haskell, Version 98, "13 Arrays", [Online, abgerufen am 01.11.2021]. Verfügbar unter: https://www.haskell.org/tutorial/arrays.html
