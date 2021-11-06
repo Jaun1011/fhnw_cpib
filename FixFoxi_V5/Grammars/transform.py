@@ -3,7 +3,6 @@ from os import remove
 from typing import Literal
 import re
 
-
 def nts(content):
     lines = content.replace("';'", "'SEMICOLON'").split(";")
 
@@ -51,20 +50,19 @@ def ts(content):
                     .replace("}", "")
                     
                 if(not (sub == "" or  "(" in sub or ")" in sub or "-" in sub)):
-                    ts.append(sub)
+                    ts.append(sub.upper())
     return ts
 
-def transform(identifier, types):
+def dataType(types,identifier):
     content = "datatype "  + identifier + "\n    ="
 
     for type in types:
-        content += " " + type.upper() + "\n    |"
+        content += " " + type + "\n    |"
 
     content = content[:-5]
 
     content += f"val string_of_{identifier} = \n    fn"
     for type in types:
-        type = type.upper()
         content += f" {type} => \"{type}\"\n    |"
     
     content = content[:-1]
@@ -77,8 +75,44 @@ def hack():
     content = re.sub("\(\*.*\*\)", "", content)
 
 
-    tsym = nts(content)
-    print(transform("nonterm", tsym))
+    tsym = dataType(ts(content), "term")
+    ntsym = dataType(nts(content), "nonterm")
+    expressionPrint(content)
+    # open("Grammar_CK2.sml", "w").write(tsym + ntsym)
+   
+
+
+
+
+
+def expressionPrint(content):
+    lines = content\
+        .replace("';'", "'SEMICOLON'")\
+        .replace("'\n'", "'NEWLINE'")\
+        .split(";")
+
+    for line in lines:
+        splitted = line.split("::=")
+        if(len(splitted) >= 2):
+            prefix = splitted[0].replace("<", "").replace(">", "")
+            tokens = splitted[1].split("|")
+
+
+            params = []
+            for token in tokens:
+                
+                for item in token.split(" "):
+
+                
+
+                    if "<" in item:
+                        t = token.
+                        params.append(f"N {t}")
+
+
+
+            print(prefix)
+            print(tokens)
 
 
 

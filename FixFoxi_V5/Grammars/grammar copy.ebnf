@@ -2,9 +2,9 @@
 
 (*# regular definitions*)
 (*## printable characters*)
-<digit> ::= NUMBER;
-<lowercase> ::= LOWCHAR;
-<uppercase> ::= HIGHCHAR;
+<digit> ::= [0 - 9];
+<lowercase> ::= [a - z];
+<uppercase> ::= [A - Z];
 <letter> ::= <lowercase> | <uppercase>;
 
 <special> ::= '!' | '"' | '#' | '$' | '%' | '&' | '\'' | '(' | ')' | '*' | '+' | ',' | '-' | '.' | '/' | ':' | ';' | '<' | '=' | '>' | '?' | '@' | '[' | '\' | ']' | '^' | '_' | '' | '{' | '|' | '}' | '~';

@@ -303,19 +303,22 @@ val productions =
     factor ::= IDENT
             |  LPAREN expr RPAREN
 *)
-(expr,
-    [[N term3, N repADDOPRterm3]]),
-(repADDOPRterm3,
-    [[T ADDOPR, N term3, N repADDOPRterm3],
-     []]),
-(term3,
-    [[N factor, N repMULTOPRfactor]]),
-(repMULTOPRfactor,
-    [[T MULTOPR, N factor, N repMULTOPRfactor],
-     []]),
-(factor,
-    [[T IDENT],
-     [T LPAREN, N expr, T RPAREN]])
+  (expr, [
+          [N term1, T OR, N term1],
+          [N term1, T AND, N term1]
+  ]),
+  (term1,[
+          [N term2, N relopr, N term2],
+          [N term2, N relopr, N term1],
+          [N term2],
+  ]),
+  (term2, [[N factor, N repMULTOPRfactor]]),
+
+  (relopr, [[T EQUAL], [T NOTEQUAL], [T GREATER], [T GREATEREQUAL], [T LESS],  [T LESSEQUAL]]]),
+  (factor, [
+    [T IDENT],
+    [T LPAREN, N expr, T RPAREN]
+  ])
 ]
 
 val S = expr

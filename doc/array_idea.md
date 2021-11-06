@@ -116,6 +116,8 @@ array ::= '['[ <expr> ]']'
 
 ---
 ### Prüfung durch Fix&Foxi
+Fix&Foxi bestätigt, dass die Grammatik vollständig ist.
+
 ---
 ## Vergleich mit anderen Programmiersprachen
 ### Arrays in Haskell:
