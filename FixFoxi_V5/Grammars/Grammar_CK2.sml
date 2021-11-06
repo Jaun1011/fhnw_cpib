@@ -127,6 +127,7 @@ val string_of_term =
 
 datatype nonterm = digit
     | lowercase
+
     | uppercase
     | letter
     | special
@@ -182,6 +183,7 @@ datatype nonterm = digit
     | term1
     | term2
     | term3
+    | term1Item
     | factor
     | exprList
     | relopr
@@ -189,14 +191,16 @@ datatype nonterm = digit
     | multopr
     | divopr
     | monopr
-    | chars
     | exprListItem
+    | term1_rep
+    | term2_rep
+    | term3_rep
 
 val string_of_nonterm = 
     fn digit => "digit"
+    | term1Item => "term1Item"
     | lowercase => "lowercase"
     | uppercase => "uppercase"
-    | chars => "chars"
     | letter => "letter"
     | special => "special"
     | space => "space"
@@ -251,6 +255,9 @@ val string_of_nonterm =
     | term1 => "term1"
     | term2 => "term2"
     | term3 => "term3"
+    | term1_rep => "term1_rep"
+    | term2_rep => "term2_rep"
+    | term3_rep => "term3_rep"
     | factor => "factor"
     | exprList => "exprList"
     | relopr => "relopr"
@@ -276,20 +283,20 @@ val productions = [
     (lowercase,[[T LOWCHAR]]),
     (uppercase,[[T HIGHCHAR]]),
     (letter, [[N lowercase], [N uppercase]]),
-    (chars, [[N letter], [N digit]]),
 
+    (*
     (space, [[T WHITESPACE]]),
     (printable, [[N digit], [N letter], [N space]]),
+    *)
 
-
-    (*## Comments, Whitespaces*)
+    (*## Comments, Whitespaces
     (newline, [[T NEWLINE]]),
     (whitebase, [[N space], [N newline]]),
     (comment, [[T BACKSLASH, T BACKSLASH, N printable]]),
     (whitespace, [[N whitebase], [N comment]]),
 
-
-    (*## Reserved Identifiers, Symbols*)
+    *)
+    (*## Reserved Identifiers, Symbols
     (reservedid,[
             [T BOOL],[T CALL],[T CONST],[T COPY],
             [T DEBUGIN],[T DEBUGOUT],[T DIVE],[T DIVF],
@@ -299,12 +306,12 @@ val productions = [
             [T INT1024],[T INT32],[T INT64],[T LOCAL],[T MODE],
             [T MODF],[T MODT],[T NOT],[T OUT],[T PROC],[T PROGRAM],
             [T REF],[T RETURNS],[T SKIP],[T THEN],[T TRUE],[T VAR],[T WHILE]]),
-            
+
     (special, [
             [T LPARENT],[T COMMA],[T RPARENT],[T POINT],[T SEMICOLON],[T ASSIGN],[T OR],[T AND],
             [T EQUAL],[T NOTEQUAL],[T LESS],[T GREATER],[T LESSEQUAL],[T GREATEREQUAL],
             [T PLUSOPR],[T MINUSOPR],[T MULTOPR],[T DIVOPR]]),
-
+*)
             
     (*## Literals, Identifiers*)
     (boollit, [[T FALSE], [T TRUE]]),
@@ -338,8 +345,8 @@ val productions = [
     (typedef, [[N primtype],[N arraytype]]),
 
     (*## Parameter List*)
-    (progParamList, [[T LPARENT, N progParam, T RPARENT, N progParamListItem]]),
-    (progParamListItem, [[T COMMA, N progParam],[]]),
+    (*(progParamList, [[T LPARENT, N progParam, T RPARENT, N progParamListItem]]),
+    (progParamListItem, [[T COMMA, N progParam],[]]), *)
     (progParam, [[N flowmode],[N changemode], [N typedIdent]]),
     (paramList, [[T LPARENT, N progParam, N paramListItem, T RPARENT]]),
     (paramListItem, [[T COMMA, N param], []]),
@@ -389,15 +396,21 @@ val productions = [
     (*## Expression*)
     (expr, [[N term1, N exprItem]]),
     (exprItem, [[T AND, N term1], [T OR, N term1], []]),
-    (term1, [[N term2, N relopr, N term1], [N term2]]),
-    (term2, [[N term3, N addopr, N term2], [N term3]]),
-    (term3, [[N factor, N addopr, N term3], [N factor]]),
+    
+    (term1, [[N term2, N relopr, N term2], [N term2]]),
+    (term1Item, [[N relopr, N term2, N term1Item], []]),
+
+    (term2, [[N term3, N addopr, N term3], [N term3]]),
+    (term3, [[N factor, N addopr, N factor], [N factor]]),
+
+
     (factor, [[N literal],[N ident],
               [N ident,T IDENT],
               [N ident, N exprList],
               [N monopr, N factor],
               [T LPARENT, N expr, T RPARENT]]),
-    (exprList, [[T LPARENT, N expr,N exprListItem, T RPARENT]]),
+
+    (exprList, [[T LPARENT, N expr, N exprListItem, T RPARENT]]),
     (exprListItem, [[T COMMA, N expr], []]),
 
 
@@ -409,7 +422,7 @@ val productions = [
     (monopr, [[T NOT], [N addopr]])
 ]
 
-val S = expr
+val S = program
 
 val result = fix_foxi productions S string_of_gramsym
 
