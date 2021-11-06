@@ -89,7 +89,7 @@ a:int[4] := [1,2,3,4];
 
 Typendeklaration:
 
-Der Typ wird lexikalisch als arraytype deklariert, welche als Subtyp des <type> gilt und simit die Grammatik wie folgt erweitert:
+Der Typ wird lexikalisch als arraytype deklariert, welche als Subtyp des <type> gilt und somit die Grammatik wie folgt erweitert:
 
 ```typescript 
 <type> ::= <primtype> | <arraytype>;
@@ -119,15 +119,29 @@ array ::= '['[ <expr> ]']'
 ---
 ## Vergleich mit anderen Programmiersprachen
 ### Arrays in Haskell:
-In Haskell werden Arrays Abstrakte Datentypen behandelt.
+In Haskell werden Arrays als Abstrakte Datentypen behandelt. Die Array Erstellungsfunktion Formt einen Array aus eine Paar von Bounds und einer Liste von Index-Value-Paaren (Associative Liste). 
 
+Ein Beispiel hierfür wäre:
+```typescript
+array :: (Ix a) => (a,a) -> [(a,b)] -> Array a b
+```
 
 ### Arrays in Java:
 
 In Java wird der Array als Container Objekt mit einer fixen Anzahl eines einzigen Typs vorausgesetzt, was unsere Implementation gleicht. Jedoch wird es in unserer Umsetzung möglich sein Arrays auch ohne eine vordefinierte Grösse zu Deklarieren. 
 
+Beispiel zur Umsetzung in Java:
+```typescript
+// declares an array of integers
+int[] anArray;
+
+// allocates memory for 10 integers
+anArray = new int[10];
+```
 ---
 ## Enwurfsalternativen
+
+???
 
 ---
 
