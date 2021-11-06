@@ -254,7 +254,10 @@ val result =
               ATOMTYPE,MECHMODE,LPAREN,RPAREN,SEMICOLON,...]},fn),(fn,fn))
   : (term,?.X1,nonterm) ff'result
 val it = () : unit
+```    
+
 ---
+    
 ## Vergleich mit anderen Programmiersprachen
 
 ### Arrays in Haskell:
