@@ -3,9 +3,7 @@
 $ cd src/
 $ sml
 
-$ use "use.sml";
-$ OS.FileSys.chDir "..\\Grammars";
-$ use "Grammar_CK2.sml";
+$ use "use.sml";OS.FileSys.chDir "..\\Grammars";use "Grammar_generated.sml";
 ```
 
 generate sml code with python

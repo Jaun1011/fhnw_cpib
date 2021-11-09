@@ -1,7 +1,9 @@
 
 
+<expr> ::= <letter>;
+
 <digit> ::= number;
 <lowercase> ::= lowchar;
 <uppercase> ::= highchar;
-<letter> ::= <lowercase>  <letter> 
-        | <uppercase>;
+<letter> ::= <lowercase> 
+           | <uppercase>;

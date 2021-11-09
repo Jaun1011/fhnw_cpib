@@ -149,11 +149,11 @@ class Parser:
         
 
         (nts, i) = self.nts(tokens,i)
-        (assing, i) = self.token(tokens, Token.ASSIGN, i,True)
+        (_, i) = self.token(tokens, Token.ASSIGN, i,True)
         (opts, i) = self.options(tokens, i)
 
 
-        (val, i) = self.token(tokens, Token.SEMICOLON, i, True)
+        (_, i) = self.token(tokens, Token.SEMICOLON, i, True)
 
         return (f"    ({ nts }, {opts})", i)
 
@@ -202,17 +202,17 @@ class Parser:
         print(f"{i}\toptions ")
 
         (optItem, i) = self.optionsItem(tokens, i)
-        return (f"[[{opt}{optItem}", i)
+        return (f"[[{opt}{optItem}]", i)
 
     def optionsItem(self, tokens, i):
         print(f"{i}\toptionsItem\t{tokens[i]}")
 
         if(tokens[i][0] == Token.OR):
-            (token, i) = self.symbol(tokens, i + 1)
+            (token, i) = self.option(tokens, i + 1)
             (opt, i) = self.optionsItem(tokens, i)
-            return (f"\n             ,[{token + opt}", i)
+            return (f"\n        ,[{token + opt}", i)
     
-        return ("]", i)
+        return ("", i)
 
 
     def option(self, tokens, i):
@@ -220,28 +220,21 @@ class Parser:
 
 
         if(tokens[i][0] == Token.NTS or tokens[i][0] == Token.TS):
-            print(f"{i}\toption1\t{tokens[i]}")
-
             (item, i) = self.symbol(tokens, i)
-            print(f"{i}\toption2\t{tokens[i]}")
-
             (items, i) = self.option(tokens, i)
-
-            print(f"{i}\toption3\t{tokens[i]}")
-
             split = ""
-            if(items != "]"):
+            if(items != ""):
                 split = ", "
 
-            return (f"{item + split + items}" , i)
+            return (f"{item + split + items}]" , i)
         
-        return ("]", i)
+        return ("", i)
 
 def main():
     content = open("grammar.ebnf", "r").read().replace("\n", " ")
     tokens = tokenize(content)
-    nts = DataType(tokens, Token.NTS).toString("term")
-    ts = DataType(tokens, Token.TS).toString("nonterm")
+    nts = DataType(tokens, Token.NTS).toString("nonterm")
+    ts = DataType(tokens, Token.TS).toString("term")
 
 
     expr = Parser(tokens).sml
