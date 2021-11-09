@@ -1,128 +1,270 @@
 
-from os import remove
-from typing import Literal
+from os import error
 import re
+from typing import Pattern, cast
+import datetime
 
-def nts(content):
-    lines = content.replace("';'", "'SEMICOLON'").split(";")
+class Token:
+    NTS = "NTS"
+    COMENT = "COMENT"
+    TS = "TS"
+    ASSIGN = "ASSIGN"
+    SEMICOLON = "SEMICOLON"
+    OR = "OR"
+    LNBRACKET = "LNBRACKET"
+    RNBRACKET = "RNBRACKET"
+    LBRACKET = "LBRACKET"
+    RBRACKET = "RBRACKET"
+    LEBRACKET = "LEBRACKET"
+    REBRACKET = "REBRACKET"
+    RANGE = "RANGE"
+    QUOTE = 8
 
-    nonterminals = []
-    for line in lines:
-        nt = line.split("::=")[0]\
-            .replace("<", "")\
-            .replace(">", "")\
-            .replace("\n", "")\
-            .replace(" ","")
+def contains(i, content, substr):
+    n = 0
+    while(i + n < len(content) and n < len(substr) and content[n + i] == substr[n]):
+        n+=1
+
+    return n == len(substr)
+
+def literal(i, content, fin):
 
 
-        if(nt != ""):
-            nonterminals.append(nt)
-    
-    return nonterminals
+    lit = ""
+    while(i < len(content) and content[i].isalpha()):
+        lit += content[i]
+        i += 1
 
-def ts(content):
+    return (lit, i -1)
 
-    lines = content\
-        .replace("';'", "'SEMICOLON'")\
-        .replace("'\n'", "'NEWLINE'")\
-        .split(";")
+def tokenize(content):
+    tokens = list()
+    i = 0
 
-    ts = []
-    for line in lines:
+    while(i < len(content)):
+
+        if(content[i] == '<'):
+            (ltrl, i) = literal(i + 1, content, '>')
+            tokens.append((Token.NTS, ltrl))
         
-        assings = line.split("::=")
-        if(len(assings) >= 2):
-            assign = line.split("::=")[1]
-            removed = re.sub("\<.*\>|\'.*\'", " ", assign)
+        if(content[i] == '('): 
+            tokens.append((Token.LNBRACKET, ""))
 
-            ats = removed\
-                .replace("\n","")\
-                .replace("[","")\
-                .replace("]","")\
-                .replace(" ","|")\
-                .split("|")
+        if(content[i] == ')'): 
+            tokens.append((Token.RNBRACKET, ""))
 
-            for sub in ats:
-                sub = sub\
-                    .replace(" ", "")\
-                    .replace("*", "")\
-                    .replace("{", "")\
-                    .replace("}", "")
-                    
-                if(not (sub == "" or  "(" in sub or ")" in sub or "-" in sub)):
-                    ts.append(sub.upper())
-    return ts
+        if(content[i] == '['): 
+            tokens.append((Token.LEBRACKET, ""))
+        if(content[i] == ']'): 
+            tokens.append((Token.REBRACKET, ""))
+        
+        if(content[i] == '{'): 
+            tokens.append((Token.LBRACKET, ""))
+        if(content[i] == '}'): 
+            tokens.append((Token.RBRACKET, ""))
 
-def dataType(types,identifier):
-    content = "datatype "  + identifier + "\n    ="
+        if(content[i] == '|'): 
+            tokens.append((Token.OR, ""))
+        
+        if(content[i] == ';'):
+            tokens.append((Token.SEMICOLON, ""))
 
-    for type in types:
-        content += " " + type + "\n    |"
+        if(content[i] == '\''):
+            (ltrl, i) = literal(i + 1, content, '\'')
+            tokens.append((Token.TS, ltrl))
 
-    content = content[:-5]
+        if(contains(i, content, "::=")):
+            i += 3
+            tokens.append((Token.ASSIGN, ""))
 
-    content += f"val string_of_{identifier} = \n    fn"
-    for type in types:
-        content += f" {type} => \"{type}\"\n    |"
+        #if(contains(i, content, "(*")):
+        #    (ltrl, i) = literal(i + 2, content, '*)')
+        #    tokens.append((Token.COMENT, ltrl))
+
+        if(content[i-1] == " " and content[i].isalpha()):
+            (ltrl, i) = literal(i, content, ' ')
+            tokens.append((Token.TS, ltrl.upper()))
+
+        i += 1
+    return tokens
+
+
+
+
+
+
+
+class DataType:
+    def __init__(self, tokens, t):
+
+        terminals = []
+        for token in tokens:
+            if(token[0] == t and not token in terminals):
+                terminals.append(token)
+
+        self.terminals = terminals
+
+    def toString(self, type):
+        content = f"datatype {type}\n    = "
+        
+        for term in self.terminals:
+            content += f"{term[1]}\n    | "
+
+        content = content[:-7]
+
+        content += f"\n\nval string_of_{type} =\n    fn "
+
+        for term in self.terminals:
+            content += f"{term[1]} => \"{term[1]}\"\n    | "
+        content = content[:-7]
+
+        
+        return content + "\n"
+
+
+class Parser:
+    def __init__(self, tokens) -> None:
+        (val, i) = self.commands(tokens, 0)
+        self.sml = "[\n"+ val
+
+
+    def commands(self, tokens, i):
+
+        if (i >= len(tokens)):
+            return ("]", i)
+        print(f"{i}\tcommands\t{tokens[i]}")
+
+        (v1, i) = self.command(tokens, i)
+        (v2, i) = self.commands(tokens, i)
+
+        split = "\n"
+        if(v2 != "]"):
+            split = ",\n"
+
+        
+        return (f"{v1 + split +  v2}", i)
+
+    def command(self, tokens, i):
+        print(f"{i}\tcommand\t{tokens[i]}")
+        
+
+        (nts, i) = self.nts(tokens,i)
+        (assing, i) = self.token(tokens, Token.ASSIGN, i,True)
+        (opts, i) = self.options(tokens, i)
+
+
+        (val, i) = self.token(tokens, Token.SEMICOLON, i, True)
+
+        return (f"    ({ nts }, {opts})", i)
+
+
+    def token(self, tokens, tkn, i, ex):   
+        print(f"{i}\ttoken\t{tokens[i]}")
+
+        if(tokens[i][0] == tkn):
+            return (f"{tokens[i][1]}", i + 1)
+        if(ex):
+            raise Exception(f"syntax error {tokens[i]} {i} {tkn}")
+        return("", i+1)
     
-    content = content[:-1]
+    def nts(self, tokens, i):
+        print(f"{i}\tnts\t{tokens[i]}")
 
-    return content
+        if(tokens[i][0] == Token.NTS):
+            return (f"{tokens[i][1]}", i + 1)
 
+        raise Exception(f"nts\t{tokens[i]} {i} ")
 
-def hack():
-    content = open("grammar.ebnf", "r").read()
-    content = re.sub("\(\*.*\*\)", "", content)
+    def ts(self, tokens, i):
+        print(f"{i}\tts\t{tokens[i]}")
 
+        if(tokens[i][0] == Token.TS):
+            return (f"{tokens[i][1]}", i + 1)
 
-    tsym = dataType(ts(content), "term")
-    ntsym = dataType(nts(content), "nonterm")
-    expressionPrint(content)
-    # open("Grammar_CK2.sml", "w").write(tsym + ntsym)
-   
+        raise Exception(f"ts {tokens[i]} {i} ")
 
+    def symbol(self, tokens, i):
+        print(f"{i}\tsymbol\t{tokens[i]}")
 
+        try:
+            (nts, i) = self.nts(tokens, i)
+            return ("N " + nts, i)
+        except Exception as ntse:    
+            (ts, i) = self.ts(tokens, i)
+            return ("T " +ts, i)
+        
 
+    def options(self, tokens, i):
+        print(f"{i}\toptions\t{tokens[i]}")
 
+        print(f"{i}\toptions ")
+        (opt, i) = self.option(tokens, i)
+        print(f"{i}\toptions ")
 
-def expressionPrint(content):
-    lines = content\
-        .replace("';'", "'SEMICOLON'")\
-        .replace("'\n'", "'NEWLINE'")\
-        .split(";")
+        (optItem, i) = self.optionsItem(tokens, i)
+        return (f"[[{opt}{optItem}", i)
 
-    for line in lines:
-        splitted = line.split("::=")
-        if(len(splitted) >= 2):
-            prefix = splitted[0].replace("<", "").replace(">", "")
-            tokens = splitted[1].split("|")
+    def optionsItem(self, tokens, i):
+        print(f"{i}\toptionsItem\t{tokens[i]}")
 
-
-            params = []
-            for token in tokens:
-                
-                for item in token.split(" "):
-
-                
-
-                    if "<" in item:
-                        t = token.
-                        params.append(f"N {t}")
-
-
-
-            print(prefix)
-            print(tokens)
+        if(tokens[i][0] == Token.OR):
+            (token, i) = self.symbol(tokens, i + 1)
+            (opt, i) = self.optionsItem(tokens, i)
+            return (f"\n             ,[{token + opt}", i)
+    
+        return ("]", i)
 
 
+    def option(self, tokens, i):
+        print(f"{i}\toption\t{tokens[i]}")
 
 
+        if(tokens[i][0] == Token.NTS or tokens[i][0] == Token.TS):
+            print(f"{i}\toption1\t{tokens[i]}")
 
+            (item, i) = self.symbol(tokens, i)
+            print(f"{i}\toption2\t{tokens[i]}")
 
+            (items, i) = self.option(tokens, i)
+
+            print(f"{i}\toption3\t{tokens[i]}")
+
+            split = ""
+            if(items != "]"):
+                split = ", "
+
+            return (f"{item + split + items}" , i)
+        
+        return ("]", i)
 
 def main():
-    hack()
-    
+    content = open("grammar.ebnf", "r").read().replace("\n", " ")
+    tokens = tokenize(content)
+    nts = DataType(tokens, Token.NTS).toString("term")
+    ts = DataType(tokens, Token.TS).toString("nonterm")
+
+
+    expr = Parser(tokens).sml
+
+
+    file = f"""
+(*
+generated by jku, ica
+*)
+{nts}
+{ts}
+val string_of_gramsym = (string_of_term, string_of_nonterm)
+local
+  open FixFoxi.FixFoxiCore
+in
+val productions = {expr}
+
+val S = expr
+val result = fix_foxi productions S string_of_gramsym
+end (* local *)
+"""
+    open("Grammar_generated.sml", "w").write(file)
+
 
 
 
