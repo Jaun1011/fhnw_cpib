@@ -1,9 +1,105 @@
+(*program*)
+<program> ::= PROGRAM IDENT <progParamList> DO <cpsCmd> ENDPROGRAM
+            | PROGRAM IDENT <progParamList> GLOBAL <cpsDecl> DO <cpsCmd> ENDPROGRAM;
 
 
-<expr> ::= <letter>;
+(*declarations*)
+<decl> ::= <stoDecl> | <funDecl> | <procDecl>;
+<stoDecl> ::= CHANGEMODE <typedIdent> | <typedIdent>;
+<funDecl> ::= FUN IDENT <paramList> RETURNS <stoDecl> GLOBAL <globImps> LOCAL <cpsStoDecl> DO <cpsCmd> ENDFUN
+            | FUN IDENT <paramList> RETURNS <stoDecl> LOCAL <cpsStoDecl> DO <cpsCmd> ENDFUN
+            | FUN IDENT <paramList> RETURNS <stoDecl> GLOBAL <globImps>  DO <cpsCmd> ENDFUN
+            | FUN IDENT <paramList> RETURNS <stoDecl> DO <cpsCmd> ENDFUN;
 
-<digit> ::= number;
-<lowercase> ::= lowchar;
-<uppercase> ::= highchar;
-<letter> ::= <lowercase> 
-           | <uppercase>;
+<procDecl> ::= PROC IDENT <paramList> GLOBAL <globImps> LOCAL <cpsStoDecl> DO <cpsCmd> ENDPROC
+             | PROC IDENT <paramList> LOCAL <cpsStoDecl> DO <cpsCmd> ENDPROC
+             | PROC IDENT <paramList> GLOBAL <globImps>  DO <cpsCmd> ENDPROC
+             | PROC IDENT <paramList> DO <cpsCmd> ENDPROC;
+
+<globImps> ::= <globImp> 
+             | <globImp> <globImpsOpt>;
+<globImpsOpt> ::= COMMA <globImp> | <globImpsOpt>;
+
+<globImp> ::= FLOWMODE CHANGEMODE IDENT
+            | CHANGEMODE IDENT
+            | FLOWMODE IDENT
+            | IDENT;
+
+<cpsDecl> ::= <decl> <cpsDeclOpt> | <decl>;
+<cpsDeclOpt> ::= SEMICOLON <decl> | <cpsDeclOpt>;
+
+<cpsStoDecl> ::= <stoDecl> | <stoDecl> <cpsStoDeclOpt>;
+<cpsStoDeclOpt> ::= SEMICOLON <stoDecl> | <cpsStoDeclOpt>;
+
+(*parameter lists*)
+<progParamList> ::= LPAREN <progParam> <progParamListOpt> RPAREN
+                  | LPAREN <progParam> RPAREN
+                  | LPAREN RPAREN;
+
+<progParamListOpt> ::= COMMA <progParam> | <progParamListOpt>;
+
+<progParam> ::= FLOWMODE CHANGEMODE <typedIdent>
+              | FLOWMODE  <typedIdent>
+              | CHANGEMODE <typedIdent>
+              | <typedIdent>;
+
+<paramList> ::= LPAREN RPAREN 
+              | LPAREN <param> <paramListOpt> RPAREN
+              | LPAREN <param> RPAREN;
+<paramListOpt> ::= COMMA <param> | <paramListOpt>;
+
+<param ::= FLOWMODE MECHMODE CHANGEMODE <typedIdent>
+         | FLOWMODE <typedIdent> 
+         | FLOWMODE MECHMODE <typedIdent> 
+         | FLOWMODE CHANGEMODE <typedIdent> 
+         | MECHMODE <typedIdent>
+         | MECHMODE CHANGEMODE <typedIdent>
+         | CHANGEMODE <typedIdent>;
+
+<typedIdent> ::= IDENT COLON ATOMTYPE;
+
+(*commands*)
+<cmd> ::= SKIP
+        | <expr> BECOMES <expr>
+        | IF <expr> THEN <cpsCmd> ELSE <cpsCmd> ENDIF
+        | WHILE <expr> DO <cpsCmd> ENDWHILE
+        | CALL IDENT <exprList> 
+        | CALL IDENT <exprList> globInits
+        | DEBUGIN <expr>
+        | DEBUGOUT <expr>;
+
+<cpsCmd> ::= <cmd>  | <cmd> <cpsCmdOpt>;
+<cpsCmdOpt> ::= SEMICOLON <cmd>;
+
+<globInits> ::= INIT <idents>;
+
+<idents> ::= IDENT | IDENT <identsOpt>;
+<identsOpt> ::= COMMA IDENT;
+
+(*expressions*)
+<expr> ::= <term1> | <term1> <exprOpt>;
+<exprOpt> ::= BOOLOPR <term1> | <exprOpt>;
+
+<term1> ::= <term2> 
+          | <term2> RELOPR <term2>;
+
+<term2> ::= <term3> 
+          | <term3> <term2Opt>;
+<term2Opt> ::= ADDOPR <term3> | <term2Opt>;
+
+<term3> ::= <factor> | <factor> <term3Opt>; 
+<term3Opt> ::= MULTOPR <factor> | <term3Opt>;
+
+<factor> ::= LITERAL
+           | IDENT
+           | IDENT INIT 
+           | IDENT <exprList>  
+           | <monadicOpr> <factor>
+           | LPAREN <expr> RPAREN;
+
+<exprList> ::= LPAREN RPAREN
+             | LPAREN <expr> <exprListOpt>  RPAREN
+             | LPAREN <expr> RPAREN;
+<exprListOpt> ::= COMMA <expr> | <exprListOpt>;
+
+<monadicOpr> ::= NOT | ADDOPR;

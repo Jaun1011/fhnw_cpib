@@ -20,6 +20,8 @@ class Token:
     RANGE = "RANGE"
     QUOTE = 8
 
+
+
 def contains(i, content, substr):
     n = 0
     while(i + n < len(content) and n < len(substr) and content[n + i] == substr[n]):
@@ -27,24 +29,35 @@ def contains(i, content, substr):
 
     return n == len(substr)
 
-def literal(i, content, fin):
-
-
+def literal(i, content):
     lit = ""
-    while(i < len(content) and content[i].isalpha()):
+    if(content[i].isalpha()):
         lit += content[i]
         i += 1
 
-    return (lit, i -1)
+    while(i < len(content) and (content[i].isalpha() or content[i].isnumeric())):
+        lit += content[i]
+        i += 1
+
+    return (lit, i - 1)
+
+
+
 
 def tokenize(content):
     tokens = list()
     i = 0
 
     while(i < len(content)):
+        if(content[i:i + 2] == "(*"):
+            while(content[i:i + 2] != "*)"):
+                i+=1
+            i+=2
+            
+            # tokens.append((Token.COMENT, ltrl))
 
         if(content[i] == '<'):
-            (ltrl, i) = literal(i + 1, content, '>')
+            (ltrl, i) = literal(i + 1, content)
             tokens.append((Token.NTS, ltrl))
         
         if(content[i] == '('): 
@@ -70,27 +83,20 @@ def tokenize(content):
             tokens.append((Token.SEMICOLON, ""))
 
         if(content[i] == '\''):
-            (ltrl, i) = literal(i + 1, content, '\'')
+            (ltrl, i) = literal(i + 1, content)
             tokens.append((Token.TS, ltrl))
 
         if(contains(i, content, "::=")):
             i += 3
             tokens.append((Token.ASSIGN, ""))
 
-        #if(contains(i, content, "(*")):
-        #    (ltrl, i) = literal(i + 2, content, '*)')
-        #    tokens.append((Token.COMENT, ltrl))
 
         if(content[i-1] == " " and content[i].isalpha()):
-            (ltrl, i) = literal(i, content, ' ')
+            (ltrl, i) = literal(i, content)
             tokens.append((Token.TS, ltrl.upper()))
 
         i += 1
     return tokens
-
-
-
-
 
 
 
@@ -129,11 +135,10 @@ class Parser:
 
 
     def commands(self, tokens, i):
-
         if (i >= len(tokens)):
             return ("]", i)
-        print(f"{i}\tcommands\t{tokens[i]}")
 
+        print(f"{i}\tcommands\t{tokens[i]}")
         (v1, i) = self.command(tokens, i)
         (v2, i) = self.commands(tokens, i)
 
@@ -147,15 +152,12 @@ class Parser:
     def command(self, tokens, i):
         print(f"{i}\tcommand\t{tokens[i]}")
         
-
         (nts, i) = self.nts(tokens,i)
         (_, i) = self.token(tokens, Token.ASSIGN, i,True)
         (opts, i) = self.options(tokens, i)
-
-
         (_, i) = self.token(tokens, Token.SEMICOLON, i, True)
 
-        return (f"    ({ nts }, {opts})", i)
+        return (f"    ({ nts }, [\n         {opts})", i)
 
 
     def token(self, tokens, tkn, i, ex):   
@@ -197,12 +199,11 @@ class Parser:
     def options(self, tokens, i):
         print(f"{i}\toptions\t{tokens[i]}")
 
-        print(f"{i}\toptions ")
         (opt, i) = self.option(tokens, i)
-        print(f"{i}\toptions ")
-
         (optItem, i) = self.optionsItem(tokens, i)
-        return (f"[[{opt}{optItem}]", i)
+
+
+        return (f"[{opt}]{optItem}]", i)
 
     def optionsItem(self, tokens, i):
         print(f"{i}\toptionsItem\t{tokens[i]}")
@@ -210,7 +211,7 @@ class Parser:
         if(tokens[i][0] == Token.OR):
             (token, i) = self.option(tokens, i + 1)
             (opt, i) = self.optionsItem(tokens, i)
-            return (f"\n        ,[{token + opt}", i)
+            return (f"\n        ,[{token}]{opt}", i)
     
         return ("", i)
 
@@ -226,13 +227,14 @@ class Parser:
             if(items != ""):
                 split = ", "
 
-            return (f"{item + split + items}]" , i)
+            return (f"{item + split + items}" , i)
         
         return ("", i)
 
 def main():
     content = open("grammar.ebnf", "r").read().replace("\n", " ")
     tokens = tokenize(content)
+    print(tokens)
     nts = DataType(tokens, Token.NTS).toString("nonterm")
     ts = DataType(tokens, Token.TS).toString("term")
 
@@ -257,7 +259,6 @@ val result = fix_foxi productions S string_of_gramsym
 end (* local *)
 """
     open("Grammar_generated.sml", "w").write(file)
-
 
 
 
