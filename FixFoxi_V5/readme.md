@@ -8,6 +8,7 @@ OS.FileSys.chDir "..\\Grammars";
 use "Grammar_generated.sml";
 ```
 
+best you open a new terminal
 generate sml code with python
 
 ```sh

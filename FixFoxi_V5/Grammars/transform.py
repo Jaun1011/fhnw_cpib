@@ -134,21 +134,9 @@ class Parser:
         self.optCount = 0
         self.repCount = 0
 
-        self.opts = []
-        self.reps = []
 
         (val, _) = self.commands(tokens, 0)
-        (opts, _) = self.commands(self.opts, 0)
-        (reps, _) = self.commands(self.reps, 0)
-
-        if (reps != ""):
-            reps = "    ," + reps
-
-
-        if (opts != ""):
-            opts = "\n     ," + opts
-
-        self.sml = "[\n" + val + opts + reps + "]"
+        self.sml = "[\n" + val +  "]"
         
 
     def commands(self, tokens, i):
@@ -253,40 +241,40 @@ class Parser:
     
     def optionOptFollow(self, tokens, i, name):
 
-        self.opts.append((Token.NTS, name))
-        self.opts.append((Token.ASSIGN, ""))
+        tokens.append((Token.NTS, name))
+        tokens.append((Token.ASSIGN, ""))
 
         while(tokens[i][0] != Token.REBRACKET):
             print(f"{i}\toptionOptFollow\t{tokens[i]}")
 
             if(self.isSymbol(tokens, i)):
-                self.opts.append(tokens[i])
+                tokens.append(tokens[i])
             i+=1
 
-        self.opts.append((Token.OR, ""))
-        self.opts.append((Token.EPSILON, ""))
-        self.opts.append((Token.SEMICOLON, ""))
+        tokens.append((Token.OR, ""))
+        tokens.append((Token.EPSILON, ""))
+        tokens.append((Token.SEMICOLON, ""))
 
         return (f"N {name}", i+1) 
 
 
     def optionRepFollow(self, tokens, i, name):
 
-        self.reps.append((Token.NTS, name))
-        self.reps.append((Token.ASSIGN, ""))
+        tokens.append((Token.NTS, name))
+        tokens.append((Token.ASSIGN, ""))
 
 
         while(tokens[i][0] != Token.RBRACKET):
             print(f"{i}\toptionRepFollow\t{tokens[i]}")
 
             if(self.isSymbol(tokens, i)):
-                self.reps.append(tokens[i])
+                tokens.append(tokens[i])
             i+=1
 
-        self.reps.append((Token.NTS, name))
-        self.reps.append((Token.OR, ""))
-        self.reps.append((Token.EPSILON, ""))
-        self.reps.append((Token.SEMICOLON, ""))
+        tokens.append((Token.NTS, name))
+        tokens.append((Token.OR, ""))
+        tokens.append((Token.EPSILON, ""))
+        tokens.append((Token.SEMICOLON, ""))
 
         return (f"N {name}", i+1) 
 
@@ -321,6 +309,7 @@ class Parser:
         if(self.isSymbol(tokens, i)):
             (item, i) = self.symbol(tokens, i)
             (items, i) = self.option(tokens, i)
+
             split = ""
             if(items != ""):
                 split = ", "
@@ -337,10 +326,9 @@ def main():
     print(tokens)
 
     parser = Parser(tokens)
-    all = [*tokens, *parser.reps, *parser.opts]
 
-    nts = DataType(all, Token.NTS).toString("nonterm")
-    ts = DataType(all, Token.TS).toString("term")
+    nts = DataType(tokens, Token.NTS).toString("nonterm")
+    ts = DataType(tokens, Token.TS).toString("term")
 
     file = f"""
 (*
