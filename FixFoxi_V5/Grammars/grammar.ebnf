@@ -22,7 +22,7 @@
 <param> ::= [FLOWMODE] [MECHMODE] [CHANGEMODE] <typedIdent>;
 
 <typedIdent> ::= IDENT COLON <atomtype>;
-<atomtype> ::= (INT | INT32 | INT1024 | BOOL) <array>;
+<atomtype> ::= (INT | INT32 | INT1024 | BOOL) [<array>];
 
 
 (*commands*)

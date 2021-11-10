@@ -330,10 +330,7 @@ class Parser:
                 split = ", "
 
             return (f"{item + split + items}" , i)
-        
         return ("", i)
-
-
 
 def main():
     content = open("grammar.ebnf", "r").read().replace("\n", " ")
