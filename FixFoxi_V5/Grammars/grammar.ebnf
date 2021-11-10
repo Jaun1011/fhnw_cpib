@@ -1,7 +1,6 @@
 (*program*)
 <program> ::= PROGRAM IDENT <progParamList> [GLOBAL <cpsDecl>] DO <cpsCmd> ENDPROGRAM;
 
-
 (*declarations*)
 <decl> ::= <stoDecl> | <funDecl> | <procDecl>;
 <stoDecl> ::= [CHANGEMODE] <typedIdent>;
@@ -22,7 +21,9 @@
 <paramList> ::= LPAREN [<param> {COMMA <param>}] RPAREN;
 <param> ::= [FLOWMODE] [MECHMODE] [CHANGEMODE] <typedIdent>;
 
-<typedIdent> ::= IDENT COLON ATOMTYPE;
+<typedIdent> ::= IDENT COLON <atomtype>;
+<atomtype> ::= (INT | INT32 | INT1024 | BOOL) <array>;
+
 
 (*commands*)
 <cmd> ::= SKIP
@@ -35,7 +36,11 @@
 
 <cpsCmd> ::= <cmd> {SEMICOLON <cmd>};
 <globInits> ::= INIT <idents>;
-<idents> ::= IDENT {COMMA IDENT};
+<idents> ::= <ident> {COMMA <ident>};
+
+<ident> ::= CHAR {(CHAR|NUMBER)} (<array> | <arraylen>);
+<array> ::= LEBRKT [<expr>] REBRKT;
+<arraylen> ::= DOT LENGTH;
 
 (*expressions*)
 <expr> ::= <term1> {BOOLOPR <term1>};
@@ -44,10 +49,9 @@
 <term3> ::= <factor> {MULTOPR <factor>}; 
 
 <factor> ::= LITERAL
-           | IDENT <factorItent>
+           | IDENT [(INIT | <exprList>)]
            | <monadicOpr> <factor>
-           | LPAREN <expr> RPAREN;
-<factorItent> ::= INIT | <exprList> | $;
+           | LPARENT <expr> RPARENT;
 
-<exprList> ::= LPAREN [<expr> {COMMA <expr>}] RPAREN;
+<exprList> ::= LPARENT [<expr> {COMMA <expr>}] RPARENT;
 <monadicOpr> ::= NOT | ADDOPR;

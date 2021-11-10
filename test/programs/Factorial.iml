@@ -4,7 +4,11 @@
 // October 2020
 
 program Factorial
-  (in n:int32, out factRec1024:int1024, out allEqual:bool)
+  ( 
+    in n:int32, 
+    out factRec1024:int1024, 
+    out allEqual:bool
+  )
 global
   // 170! ok, 171! overflow
   fun factRec1024(n:int32) returns const fact:int1024
@@ -20,11 +24,19 @@ global
   fun fact1024(n:int32) returns var fact:int1024
   local
     var i:int32
+    var j:int32
+    var schinken:int32[n]
   do
-    fact init := 1;
-    i    init := 2;
+    schinken[1] init := 2
+    schinken[1] := 2
+
+    j := 0
     while i <= n do
       fact := fact * i;
+      if (fact modF 2)  == 0 then
+        schinken[j] init := fact
+        j := j + 1
+      endif
       i    := i + 1
     endwhile
   endfun;

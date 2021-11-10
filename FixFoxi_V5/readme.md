@@ -4,7 +4,7 @@ $ cd src/
 $ sml
 
 use "use.sml";
-OS.FileSys.chDir "..\\Grammars";
+OS.FileSys.chDir "..\\grammars";
 use "Grammar_generated.sml";
 ```
 
