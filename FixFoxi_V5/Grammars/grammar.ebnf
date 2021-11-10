@@ -39,7 +39,7 @@
 <idents> ::= <ident> {COMMA <ident>};
 
 <ident> ::= CHAR {(CHAR|NUMBER)} (<array> | <arraylen>);
-<array> ::= LEBRKT [<expr>] REBRKT;
+<array> ::= LEBRKT <expr> REBRKT;
 <arraylen> ::= DOT LENGTH;
 
 (*expressions*)
