@@ -10,24 +10,17 @@
 <procDecl> ::= PROC IDENT <paramList> [GLOBAL <globImps>] [LOCAL <cpsStoDecl>] DO <cpsCmd> ENDPROC;
 
 <globImps> ::= <globImp> {COMMA <globImp>};
-
 <globImp> ::= [FLOWMODE] [CHANGEMODE] IDENT;
 
 <cpsDecl> ::= <decl> {SEMICOLON <decl>};
-
 <cpsStoDecl> ::= <stoDecl> {SEMICOLON <stoDecl>};
 
 (*parameter lists*)
 <progParamList> ::= LPAREN [<progParam>  {COMMA <progParam>}] RPAREN;
-
 <progParam> ::= [FLOWMODE] [CHANGEMODE] <typedIdent>;
 
-<paramList> ::= LPAREN RPAREN 
-              | LPAREN <param> <paramListOpt> RPAREN
-              | LPAREN <param> RPAREN;
-<paramListOpt> ::= COMMA <param> | <paramListOpt>;
-
-<param ::= [FLOWMODE] [MECHMODE] [CHANGEMODE] <typedIdent>;
+<paramList> ::= LPAREN [<param> {COMMA <param>}] RPAREN;
+<param> ::= [FLOWMODE] [MECHMODE] [CHANGEMODE] <typedIdent>;
 
 <typedIdent> ::= IDENT COLON ATOMTYPE;
 
@@ -36,32 +29,25 @@
         | <expr> BECOMES <expr>
         | IF <expr> THEN <cpsCmd> ELSE <cpsCmd> ENDIF
         | WHILE <expr> DO <cpsCmd> ENDWHILE
-        | CALL IDENT <exprList> [globInits]
+        | CALL IDENT <exprList> [<globInits>]
         | DEBUGIN <expr>
         | DEBUGOUT <expr>;
 
 <cpsCmd> ::= <cmd> {SEMICOLON <cmd>};
-
 <globInits> ::= INIT <idents>;
-
-<idents> ::= IDENT | IDENT {COMMA IDENT};
+<idents> ::= IDENT {COMMA IDENT};
 
 (*expressions*)
 <expr> ::= <term1> {BOOLOPR <term1>};
-
 <term1> ::= <term2> [RELOPR <term2>];
-
 <term2> ::= <term3> {ADDOPR <term3>};
-
 <term3> ::= <factor> {MULTOPR <factor>}; 
 
 <factor> ::= LITERAL
-           | IDENT
-           | IDENT INIT 
-           | IDENT <exprList>  
+           | IDENT <factorItent>
            | <monadicOpr> <factor>
            | LPAREN <expr> RPAREN;
+<factorItent> ::= INIT | <exprList> | $;
 
 <exprList> ::= LPAREN [<expr> {COMMA <expr>}] RPAREN;
-
 <monadicOpr> ::= NOT | ADDOPR;

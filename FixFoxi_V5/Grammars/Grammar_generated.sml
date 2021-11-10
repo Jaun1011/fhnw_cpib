@@ -18,7 +18,6 @@ datatype nonterm
     | globImp
     | progParam
     | param
-    | paramListOpt
     | cmd
     | expr
     | exprList
@@ -28,6 +27,7 @@ datatype nonterm
     | term2
     | term3
     | factor
+    | factorItent
     | monadicOpr
     | opt0
     | opt1
@@ -47,13 +47,14 @@ datatype nonterm
     | opt12
     | opt13
     | opt14
+    | opt15
     | rep3
     | rep4
     | rep5
-    | opt15
+    | opt16
     | rep6
     | rep7
-    | opt16
+    | opt17
 
 val string_of_nonterm =
     fn program => "program"
@@ -71,7 +72,6 @@ val string_of_nonterm =
     | globImp => "globImp"
     | progParam => "progParam"
     | param => "param"
-    | paramListOpt => "paramListOpt"
     | cmd => "cmd"
     | expr => "expr"
     | exprList => "exprList"
@@ -81,6 +81,7 @@ val string_of_nonterm =
     | term2 => "term2"
     | term3 => "term3"
     | factor => "factor"
+    | factorItent => "factorItent"
     | monadicOpr => "monadicOpr"
     | opt0 => "opt0"
     | opt1 => "opt1"
@@ -100,13 +101,14 @@ val string_of_nonterm =
     | opt12 => "opt12"
     | opt13 => "opt13"
     | opt14 => "opt14"
+    | opt15 => "opt15"
     | rep3 => "rep3"
     | rep4 => "rep4"
     | rep5 => "rep5"
-    | opt15 => "opt15"
+    | opt16 => "opt16"
     | rep6 => "rep6"
     | rep7 => "rep7"
-    | opt16 => "opt16"
+    | opt17 => "opt17"
 
 datatype term
     = PROGRAM
@@ -138,7 +140,6 @@ datatype term
     | WHILE
     | ENDWHILE
     | CALL
-    | GLOBINITS
     | DEBUGIN
     | DEBUGOUT
     | INIT
@@ -179,7 +180,6 @@ val string_of_term =
     | WHILE => "WHILE"
     | ENDWHILE => "ENDWHILE"
     | CALL => "CALL"
-    | GLOBINITS => "GLOBINITS"
     | DEBUGIN => "DEBUGIN"
     | DEBUGOUT => "DEBUGOUT"
     | INIT => "INIT"
@@ -220,14 +220,9 @@ val productions = [
     (progParam, [
          [N opt9, N opt10, N typedIdent]]),
     (paramList, [
-         [T LPAREN, T RPAREN]
-        ,[T LPAREN, N param, N paramListOpt, T RPAREN]
-        ,[T LPAREN, N param, T RPAREN]]),
-    (paramListOpt, [
-         [T COMMA, N param]
-        ,[N paramListOpt]]),
+         [T LPAREN, N opt11, T RPAREN]]),
     (param, [
-         [N opt11, N opt12, N opt13, N typedIdent]]),
+         [N opt12, N opt13, N opt14, N typedIdent]]),
     (typedIdent, [
          [T IDENT, T COLON, T ATOMTYPE]]),
     (cmd, [
@@ -235,7 +230,7 @@ val productions = [
         ,[N expr, T BECOMES, N expr]
         ,[T IF, N expr, T THEN, N cpsCmd, T ELSE, N cpsCmd, T ENDIF]
         ,[T WHILE, N expr, T DO, N cpsCmd, T ENDWHILE]
-        ,[T CALL, T IDENT, N exprList, N opt14]
+        ,[T CALL, T IDENT, N exprList, N opt15]
         ,[T DEBUGIN, N expr]
         ,[T DEBUGOUT, N expr]]),
     (cpsCmd, [
@@ -243,25 +238,26 @@ val productions = [
     (globInits, [
          [T INIT, N idents]]),
     (idents, [
-         [T IDENT]
-        ,[T IDENT, N rep4]]),
+         [T IDENT, N rep4]]),
     (expr, [
          [N term1, N rep5]]),
     (term1, [
-         [N term2, N opt15]]),
+         [N term2, N opt16]]),
     (term2, [
          [N term3, N rep6]]),
     (term3, [
          [N factor, N rep7]]),
     (factor, [
          [T LITERAL]
-        ,[T IDENT]
-        ,[T IDENT, T INIT]
-        ,[T IDENT, N exprList]
+        ,[T IDENT, N factorItent]
         ,[N monadicOpr, N factor]
         ,[T LPAREN, N expr, T RPAREN]]),
+    (factorItent, [
+         [T INIT]
+        ,[N exprList]
+        ,[]]),
     (exprList, [
-         [T LPAREN, N opt16, T RPAREN]]),
+         [T LPAREN, N opt17, T RPAREN]]),
     (monadicOpr, [
          [T NOT]
         ,[T ADDOPR]]),
@@ -308,16 +304,19 @@ val productions = [
          [T CHANGEMODE]
         ,[]]),
     (opt11, [
-         [T FLOWMODE]
+         [N param, T COMMA, N param]
         ,[]]),
     (opt12, [
-         [T MECHMODE]
+         [T FLOWMODE]
         ,[]]),
     (opt13, [
-         [T CHANGEMODE]
+         [T MECHMODE]
         ,[]]),
     (opt14, [
-         [T GLOBINITS]
+         [T CHANGEMODE]
+        ,[]]),
+    (opt15, [
+         [N globInits]
         ,[]]),
     (rep3, [
          [T SEMICOLON, N cmd, N rep3]
@@ -328,7 +327,7 @@ val productions = [
     (rep5, [
          [T BOOLOPR, N term1, N rep5]
         ,[]]),
-    (opt15, [
+    (opt16, [
          [T RELOPR, N term2]
         ,[]]),
     (rep6, [
@@ -337,7 +336,7 @@ val productions = [
     (rep7, [
          [T MULTOPR, N factor, N rep7]
         ,[]]),
-    (opt16, [
+    (opt17, [
          [N expr, T COMMA, N expr]
         ,[]])
 ]
