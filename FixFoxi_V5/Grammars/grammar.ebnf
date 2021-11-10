@@ -28,7 +28,7 @@
 (*commands*)
 <cmd> ::= SKIP
         | <expr> BECOMES <expr>
-        | IF <expr> THEN <cpsCmd> ELSE <cpsCmd> ENDIF
+        | IF <expr> THEN <cpsCmd> [ELSE <cpsCmd>] ENDIF
         | WHILE <expr> DO <cpsCmd> ENDWHILE
         | CALL IDENT <exprList> [<globInits>]
         | DEBUGIN <expr>

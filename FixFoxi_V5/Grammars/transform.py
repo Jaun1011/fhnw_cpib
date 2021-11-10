@@ -232,7 +232,9 @@ class Parser:
     
         return ("", i)
 
-    def optionOptFollow(self, tokens, i, name):
+    def optionOptFollow(self, tokens, i):
+        name = f"opt{self.optCount}"
+
         self.optCount += 1
 
         tokens.append((Token.NTS, name))
@@ -250,7 +252,9 @@ class Parser:
 
         return (f"N {name}", i+1) 
 
-    def optionRepFollow(self, tokens, i, name):
+    def optionRepFollow(self, tokens, i):
+        name = f"rep{self.repCount}"
+
         self.repCount += 1
 
         tokens.append((Token.NTS, name))
@@ -268,7 +272,9 @@ class Parser:
 
         return (f"N {name}", i+1) 
 
-    def optionJoiceFollow(self, tokens, i, name):
+    def optionJoiceFollow(self, tokens, i):
+        name = f"joice{self.joiceCount}"
+
         self.joiceCount += 1
 
         tokens.append((Token.NTS, name))
@@ -288,9 +294,8 @@ class Parser:
         print(f"{i}\toption\t{tokens[i]}")
         
         if(tokens[i][0] == Token.LEBRACKET):
-            name = f"opt{self.optCount}"
 
-            (val, i) = self.optionOptFollow(tokens, i+1, name)
+            (val, i) = self.optionOptFollow(tokens, i+1)
             (val2, i) = self.option(tokens, i)
             
             if(val2 != ""):
@@ -299,9 +304,8 @@ class Parser:
             return (val + val2, i)
             
         if(tokens[i][0] == Token.LBRACKET):
-            name = f"rep{self.repCount}"
 
-            (val, i) = self.optionRepFollow(tokens, i+1, name)
+            (val, i) = self.optionRepFollow(tokens, i+1)
             (val2, i) = self.option(tokens, i)
 
             if(val2 != ""):
@@ -310,8 +314,7 @@ class Parser:
             return (val + val2, i)
 
         if(tokens[i][0] == Token.LNBRACKET):
-            name = f"joice{self.joiceCount}"
-            (val, i) = self.optionJoiceFollow(tokens, i+1, name)
+            (val, i) = self.optionJoiceFollow(tokens, i+1)
             (val2, i) = self.option(tokens, i)
 
             if(val2 != ""):
