@@ -19,6 +19,7 @@ class Token:
     REBRACKET = "REBRACKET"
     RANGE = "RANGE"
     QUOTE = 8
+    EPSILON = "EPSILON"
 
 
 
@@ -56,6 +57,9 @@ def tokenize(content):
             
             # tokens.append((Token.COMENT, ltrl))
 
+        if(content[i] == '$'):
+            tokens.append((Token.EPSILON, ""))
+
         if(content[i] == '<'):
             (ltrl, i) = literal(i + 1, content)
             tokens.append((Token.NTS, ltrl))
@@ -90,8 +94,7 @@ def tokenize(content):
             i += 3
             tokens.append((Token.ASSIGN, ""))
 
-
-        if(content[i-1] == " " and content[i].isalpha()):
+        if((content[i-1] == " " or content[i-1] == "[" or content[i-1] == "{") and content[i].isalpha()):
             (ltrl, i) = literal(i, content)
             tokens.append((Token.TS, ltrl.upper()))
 
@@ -130,17 +133,30 @@ class DataType:
 
 class Parser:
     def __init__(self, tokens) -> None:
+        self.optCount = 0
+        self.repCount = 0
+
+        self.opts = []
+        self.reps = []
         (val, i) = self.commands(tokens, 0)
-        self.sml = "[\n"+ val
+
+        (opts, i) = self.commands(self.opts, 0)
+        (reps, i) = self.commands(self.reps, 0)
+
+        self.sml = "[\n"+ val + opts + reps +"]"
+        
 
 
     def commands(self, tokens, i):
         if (i >= len(tokens)):
-            return ("]", i)
+            return ("", i)
 
         print(f"{i}\tcommands\t{tokens[i]}")
+
+
         (v1, i) = self.command(tokens, i)
         (v2, i) = self.commands(tokens, i)
+
 
         split = "\n"
         if(v2 != "]"):
@@ -185,16 +201,30 @@ class Parser:
 
         raise Exception(f"ts {tokens[i]} {i} ")
 
+    def epsilon(self, tokens,i):
+        print(f"{i}\tepsilon\t{tokens[i]}")
+        if(tokens[i][0] == Token.EPSILON):
+            return ("", i + 1)
+        raise Exception(f"epsilon {tokens[i]} {i} ")
+
+
+    def isSymbol(self, tokens, i):
+        return tokens[i][0] == Token.NTS or tokens[i][0] == Token.TS or tokens[i][0] == Token.EPSILON
+
     def symbol(self, tokens, i):
         print(f"{i}\tsymbol\t{tokens[i]}")
 
         try:
             (nts, i) = self.nts(tokens, i)
             return ("N " + nts, i)
-        except Exception as ntse:    
-            (ts, i) = self.ts(tokens, i)
-            return ("T " +ts, i)
         
+        except Exception as ntse:    
+            try:
+                (ts, i) = self.ts(tokens, i)
+                return ("T " +ts, i)
+            except Exception as tse:    
+                (ts, i) = self.epsilon(tokens, i)
+                return (ts, i)
 
     def options(self, tokens, i):
         print(f"{i}\toptions\t{tokens[i]}")
@@ -216,11 +246,68 @@ class Parser:
         return ("", i)
 
 
+    
+    def optionOptFollow(self, tokens, i, name):
+
+        self.opts.append((Token.NTS, name))
+        self.opts.append((Token.ASSIGN, ""))
+
+        while(tokens[i][0] != Token.REBRACKET):
+            print(f"{i}\toptionOptFollow\t{tokens[i]}")
+
+            if(self.isSymbol(tokens, i)):
+                self.opts.append(tokens[i])
+            i+=1
+
+        self.opts.append((Token.OR, ""))
+        self.opts.append((Token.EPSILON, ""))
+        self.opts.append((Token.SEMICOLON, ""))
+
+        return (f"N {name}", i+1) 
+
+
+    def optionRepFollow(self, tokens, i, name):
+
+        self.reps.append((Token.NTS, name))
+        self.reps.append((Token.ASSIGN, ""))
+
+
+        while(tokens[i][0] != Token.RBRACKET):
+            print(f"{i}\toptionRepFollow\t{tokens[i]}")
+
+            if(self.isSymbol(tokens, i)):
+                self.reps.append(tokens[i])
+            i+=1
+
+        self.reps.append((Token.NTS, name))
+        self.reps.append((Token.OR, ""))
+        self.reps.append((Token.EPSILON, ""))
+        self.reps.append((Token.SEMICOLON, ""))
+
+        return (f"N {name}", i+1) 
+
     def option(self, tokens, i):
         print(f"{i}\toption\t{tokens[i]}")
+        
+        if(tokens[i][0] == Token.LEBRACKET):
+            name = f"opt{self.optCount}"
+            self.optCount += 1
 
+            (val, i) = self.optionOptFollow(tokens, i, name)
+            (val2, i) = self.option(tokens, i)
 
-        if(tokens[i][0] == Token.NTS or tokens[i][0] == Token.TS):
+            return (val + val2, i)
+            
+        if(tokens[i][0] == Token.LBRACKET):
+            name = f"rep{self.repCount}"
+            self.optCount += 1
+
+            (val, i) = self.optionRepFollow(tokens, i, name)
+            (val2, i) = self.option(tokens, i)
+            return (val + val2, i)
+            
+
+        if(self.isSymbol(tokens, i)):
             (item, i) = self.symbol(tokens, i)
             (items, i) = self.option(tokens, i)
             split = ""
@@ -231,15 +318,20 @@ class Parser:
         
         return ("", i)
 
+
+
 def main():
     content = open("grammar.ebnf", "r").read().replace("\n", " ")
     tokens = tokenize(content)
     print(tokens)
-    nts = DataType(tokens, Token.NTS).toString("nonterm")
-    ts = DataType(tokens, Token.TS).toString("term")
+
+    parser = Parser(tokens)
+    all = [*tokens, *parser.reps, *parser.opts]
+
+    nts = DataType(all, Token.NTS).toString("nonterm")
+    ts = DataType(all, Token.TS).toString("term")
 
 
-    expr = Parser(tokens).sml
 
 
     file = f"""
@@ -252,7 +344,7 @@ val string_of_gramsym = (string_of_term, string_of_nonterm)
 local
   open FixFoxi.FixFoxiCore
 in
-val productions = {expr}
+val productions = {parser.sml}
 
 val S = expr
 val result = fix_foxi productions S string_of_gramsym
