@@ -1,1 +1,3 @@
-<schinken> ::= [RPARENT] TEST {BLU AB} | $;
+(*program*)
+<program> ::= PROGRAM IDENT [GLOBAL] {ENDPROGRAM};
+
