@@ -310,7 +310,7 @@ class Parser:
             return (val + val2, i)
 
         if(tokens[i][0] == Token.LNBRACKET):
-            name = f"joice{self.repCount}"
+            name = f"joice{self.joiceCount}"
             (val, i) = self.optionJoiceFollow(tokens, i+1, name)
             (val2, i) = self.option(tokens, i)
 
