@@ -129,7 +129,7 @@ class Parser:
     def __init__(self, tokens) -> None:
         self.optCount = 0
         self.repCount = 0
-        self.joiceCount = 0
+        self.choiceCount = 0
 
         (val, _) = self.commands(tokens, 0)
         self.sml = "[\n" + val +  "]"
@@ -273,9 +273,9 @@ class Parser:
         return (f"N {name}", i+1) 
 
     def optionJoiceFollow(self, tokens, i):
-        name = f"joice{self.joiceCount}"
+        name = f"choice{self.choiceCount}"
 
-        self.joiceCount += 1
+        self.choiceCount += 1
 
         tokens.append((Token.NTS, name))
         tokens.append((Token.ASSIGN, ""))
