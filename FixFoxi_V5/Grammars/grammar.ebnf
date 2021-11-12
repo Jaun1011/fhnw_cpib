@@ -21,8 +21,8 @@
 <paramList> ::= LPAREN [<param> {COMMA <param>}] RPAREN;
 <param> ::= [FLOWMODE] [MECHMODE] [CHANGEMODE] <typedIdent>;
 
-<typedIdent> ::= IDENT COLON <atomtype>;
-<atomtype> ::= (INT | INT32 | INT1024 | BOOL) [<array>];
+<typedIdent> ::= IDENT COLON <atomtype> [<arrayBrackets>];
+<atomtype> ::= (INT | INT32 | INT1024 | BOOL);
 
 
 (*commands*)
@@ -38,9 +38,11 @@
 <globInits> ::= INIT <idents>;
 <idents> ::= <ident> {COMMA <ident>};
 
-<ident> ::= CHAR {(CHAR|NUMBER)} (<array> | <arraylen>);
-<array> ::= LEBRKT <expr> REBRKT;
-<arraylen> ::= DOT LENGTH;
+<ident> ::= <identChars> | <identArray>;
+<identChars> ::= CHAR {(CHAR|NUMBER)};
+<identArray> ::= <identChars> (<arrayBrackets> |  DOT LENGTH);
+<arrayBrackets> ::= LEBRKT <expr> REBRKT;
+
 
 (*expressions*)
 <expr> ::= <term1> {BOOLOPR <term1>};
