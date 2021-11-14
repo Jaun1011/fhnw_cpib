@@ -30,11 +30,13 @@ data Terminal
     | IN | OUT
     | INIT | INOUT
     | LOCAL | GLOBAL
-    | PROC | REF
+    | LENGTH | DOT
+    | PROC | REF 
     | LPAREN | RPAREN
+    | LEBRKT | REBRKT
     | SEMICOLON | COMMA
     | LITERAL | ALITERAL
-    | RELOPR | LOGICOPR | ARITMOPR | DIVOPR
+    | RELOPR | LOGICOPR | ARITMOPR | DIVOPR | MULTOPR | ADDOPR
     | ENDFUN | ENDIF | ENDPROC | ENDPROGRAM | ENDWHILE
     deriving(Show, Eq)
 
@@ -98,6 +100,7 @@ keywords =
     ,("while", (WHILE,Nothing))
     ,("bool", (BOOL,Nothing))
     ,("call", (CALL, Nothing))
+    ,("length", (LENGTH, Nothing))
     ,("const", (CONST, Nothing))
     ,("copy", (COPY, Nothing))
     ,("debugin", (DEBUGIN, Nothing))
@@ -156,18 +159,23 @@ specialChars (':':'=':cs) = (cs,Just (ASSIGN, Nothing))
 specialChars ('/':'=':cs) = (cs,Just (RELOPR, Just (RelOperator NOT_EQUAL)))
 specialChars ('>':'=':cs) = (cs,Just (RELOPR, Just (RelOperator GREATER_EQUAL)))
 specialChars ('<':'=':cs) = (cs,Just (RELOPR, Just (RelOperator LESS_EQUAL)))
-
 specialChars ('=':cs) = (cs,Just (RELOPR, Just (RelOperator EQUAL)))
 specialChars ('<':cs) = (cs,Just (RELOPR, Just (RelOperator LESS)))
 specialChars ('>':cs) = (cs,Just (RELOPR, Just (RelOperator GREATER)))
 
-specialChars ('+':cs) = (cs,Just (RELOPR, Just (AritmeticOperator PLUS)))
-specialChars ('-':cs) = (cs,Just (RELOPR, Just (AritmeticOperator MINUS)))
-specialChars ('*':cs) = (cs,Just (RELOPR, Just (AritmeticOperator MULTI)))
-specialChars ('/':cs) = (cs,Just (RELOPR, Just (AritmeticOperator DIV)))
+
+specialChars ('*':cs) = (cs,Just (MULTOPR, Just (AritmeticOperator MULTI)))
+specialChars ('/':cs) = (cs,Just (MULTOPR, Just (AritmeticOperator DIV)))
+
+specialChars ('+':cs) = (cs,Just (ADDOPR, Just (AritmeticOperator PLUS)))
+specialChars ('-':cs) = (cs,Just (ADDOPR, Just (AritmeticOperator MINUS)))
 
 specialChars ('(':cs) = (cs,Just (LPAREN, Nothing))
 specialChars (')':cs) = (cs,Just (RPAREN, Nothing))
+
+
+specialChars ('[':cs) = (cs,Just (LEBRKT, Nothing))
+specialChars (']':cs) = (cs,Just (REBRKT, Nothing))
 
 specialChars (':':cs) = (cs,Just (TYPEDEF, Nothing))
 specialChars (';':cs) = (cs,Just (SEMICOLON, Nothing))
@@ -179,6 +187,6 @@ specialChars ('&':cs) = (cs,Just (LOGICOPR, Just (LogicOperator AND)))
 specialChars ('^':cs) = (cs,Just (LOGICOPR, Just (LogicOperator XOR)))
 specialChars ('|':cs) = (cs,Just (LOGICOPR, Just (LogicOperator OR)) )
 specialChars ('~':cs) = (cs,Just (LOGICOPR, Just (LogicOperator NOT)))
-specialChars ('.':cs) = (cs,Just (UNKNOWN, Nothing))
+specialChars ('.':cs) = (cs,Just (DOT, Nothing))
 
 specialChars n = (n, Nothing)

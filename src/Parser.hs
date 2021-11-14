@@ -1,19 +1,15 @@
-import ParsingLib
-import Model (Terminal(ENDIF))
+import ParsingLib ( Alternative((<|>), some), Parser, trm)
+import Model (Terminal(ENDIF, LPAREN, RPAREN, ADDOPR, LITERAL), AritmeticOperator (MULTI))
 
 
 --expr ::= term expr + | term
 --term ::= factor * term | factor
 --factor ::= (expr) | int
 
-inat :: Parser IExpr 
-inat = do ds <- some digit
-          return (IConst (read ds))
-
 
 
 expr :: Parser IExpr
-expr = do x <- term
+expr = do x <- term 
           char '+'
           y <- expr
           return (IAdd x y)
@@ -21,16 +17,17 @@ expr = do x <- term
 
 term :: Parser IExpr
 term = do x <- factor
-          char '*'
+          trm ADDOPR
           y <- term
           return (IMul x y)
         <|> factor
 
-factor = do char '('
+factor :: Parser IExpr
+factor = do trm LPAREN
             x <- expr
-            char ')'
+            trm RPAREN 
             return x
-           <|> inat
+           <|> trm LITERAL
 
 data BoolExpr = 
   BConst Bool
