@@ -5,12 +5,14 @@ module ParsingLib (module ParsingLib, module Control.Applicative) where
 import Control.Applicative
 import Data.Char
 import Scanner
-import Model ( Token, Terminal(ALITERAL) )
+import Model ( Token, Terminal(..) )
 import GHC.TypeLits (AppendSymbol)
 
 
 -- Takes a string and returns a maybe of  "a" and the string which wasn't consumed
-newtype Parser a = P { parse :: [Token] -> Maybe (a, [Token])}
+newtype Parser a = P {
+   parse :: [Token] -> Maybe (a, [Token])
+}
 
 
 -- Functor needed to map multiple parser at each other
@@ -32,6 +34,7 @@ instance Applicative Parser where
                            Nothing        -> Nothing 
                            Just (a, out') -> Just (g a, out'))
 
+
 -- alternative has two methods "empty" and "choice -> takes 2 things an chooses one"
 -- Making choices
 instance Alternative Parser where 
@@ -44,6 +47,7 @@ instance Alternative Parser where
          Nothing       -> parse q inp   -- If Parser p fails
          Just (v, out) -> Just (v,out)) -- If parser p succeeds
 
+
 -- monad is used to remove case based code duplication, basically composition of even func
 instance Monad Parser where
     -- (>>=) :: Parser a -> (a -> Parser b) -> Parser b
@@ -51,6 +55,7 @@ instance Monad Parser where
        case parse pa inp of
           Nothing      -> Nothing 
           Just (a, rest) -> parse (f a) rest)
+
 
 -- parses a Char if predicate p is evaluated as true
 sat :: (Token -> Bool) -> Parser Token 
@@ -62,6 +67,7 @@ sat p = do
       then return c 
       else empty
 
+
 -- parses any char
 item :: Parser Token
 item = P (\inp -> 
@@ -71,11 +77,17 @@ item = P (\inp ->
 
 
 
+
+
+
+
 -- parses a char if it matches the given c
 token :: Token -> Parser Token
 token c = sat (==c)
 
 -- parses a char if it matches the given c
-trm :: Terminal -> Parser Token
-trm c = sat (\(a, b) -> a == c) 
+digit :: Parser Int
+digit = trm ALITERAL
 
+literal :: Parser Token
+literal = trm LITERAL

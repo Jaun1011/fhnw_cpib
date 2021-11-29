@@ -1,9 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 
-module Model (Token, Terminal(..), Attirbute(..), transformKeyword, specialChars, AritmeticOperator(..)) where
+module Model (LogicOperator, RelOperator, Token, Terminal(..), Attirbute(..), transformKeyword, specialChars, AritmeticOperator(..)) where
 
-import Prelude (Show, Maybe (Just, Nothing), String, Int, snd, fst, ($), otherwise, (||), Char, Bool (True), Eq ((==), (/=)), read, ($), (.), not)
+import Prelude (Show, Maybe (Just, Nothing), String, Int, snd, fst, ($), otherwise, (||), Char, Bool (True), Eq ((==), (/=)), read, ($), (.), not, Monad, Applicative)
 import Data.Maybe
 --import Language.Haskell.TH.Syntax (Callconv)
 import Data.Int (Int32, Int64)
@@ -49,6 +49,8 @@ data Attirbute
     | StringType String
     deriving(Show, Eq)
 
+  
+
 data Type
     = INT32
     | INT64
@@ -77,7 +79,6 @@ data AritmeticOperator
    | MULTI
    | DIV
    deriving(Show, Eq)
-
 
 
 data DivOperator
@@ -125,19 +126,16 @@ keywords =
     ,("skip", (SKIP, Nothing))
     ,("true", (TRUE, Nothing))
     ,("var", (VAR, Nothing))
-    ,("assign", (ASSIGN, Nothing))
-    ,("lparen", (LPAREN, Nothing))
-    ,("rparen", (RPAREN, Nothing))
     ,("becomes", (BECOMES, Nothing))
     ,("semicolon", (SEMICOLON, Nothing))
     ,("comma", (COMMA, Nothing))
     ,("relopr", (RELOPR, Nothing))
-    ,("logicopr", (LOGICOPR, Nothing))
-    ,("aritmopr", (ARITMOPR, Nothing))
-    ,("literal", (LITERAL, Nothing))
     ,("aliteral", (ALITERAL, Nothing))
     ,("typedef", (TYPEDEF, Nothing))
     ,("unknown", (UNKNOWN, Nothing))]
+
+
+
 
 
 transformKeyword :: Token -> Token
@@ -173,7 +171,6 @@ specialChars ('-':cs) = (cs,Just (ADDOPR, Just (AritmeticOperator MINUS)))
 specialChars ('(':cs) = (cs,Just (LPAREN, Nothing))
 specialChars (')':cs) = (cs,Just (RPAREN, Nothing))
 
-
 specialChars ('[':cs) = (cs,Just (LEBRKT, Nothing))
 specialChars (']':cs) = (cs,Just (REBRKT, Nothing))
 
@@ -182,10 +179,12 @@ specialChars (';':cs) = (cs,Just (SEMICOLON, Nothing))
 specialChars (',':cs) = (cs,Just (COMMA, Nothing))
 specialChars ('!':cs) = (cs,Just (DEBUGOUT, Nothing))
 specialChars ('?':cs) = (cs,Just (DEBUGIN, Nothing))
+
 specialChars ('%':cs) = (cs,Just (MODE, Nothing))
-specialChars ('&':cs) = (cs,Just (LOGICOPR, Just (LogicOperator AND)))
+-- specialChars ('&':cs) = (cs,Just (LOGICOPR, Just (LogicOperator AND)))
+-- specialChars ('|':cs) = (cs,Just (LOGICOPR, Just (LogicOperator OR)) )
+
 specialChars ('^':cs) = (cs,Just (LOGICOPR, Just (LogicOperator XOR)))
-specialChars ('|':cs) = (cs,Just (LOGICOPR, Just (LogicOperator OR)) )
 specialChars ('~':cs) = (cs,Just (LOGICOPR, Just (LogicOperator NOT)))
 specialChars ('.':cs) = (cs,Just (DOT, Nothing))
 

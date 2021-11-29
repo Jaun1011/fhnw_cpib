@@ -1,16 +1,15 @@
-import ParsingLib ( Alternative((<|>), some), Parser, trm)
-import Model (Terminal(ENDIF, LPAREN, RPAREN, ADDOPR, LITERAL), AritmeticOperator (MULTI))
+import ParsingLib ( Alternative((<|>)), Parser, trm)
+import Model (Terminal(..), AritmeticOperator (MULTI))
+import GHC.RTS.Flags (GCFlags(numa), ProfFlags (retainerSelector))
 
 
 --expr ::= term expr + | term
 --term ::= factor * term | factor
 --factor ::= (expr) | int
 
-
-
 expr :: Parser IExpr
 expr = do x <- term 
-          char '+'
+          trm LOGICOPR 
           y <- expr
           return (IAdd x y)
         <|> term
@@ -26,31 +25,33 @@ factor :: Parser IExpr
 factor = do trm LPAREN
             x <- expr
             trm RPAREN 
-            return x
-           <|> trm LITERAL
+            return x          
+         <|> literal 
 
-data BoolExpr = 
-  BConst Bool
+
+
+
+literal :: Parser IExpr
+literal = do 
+    lit <- some literal
+    return (IIdent lit) 
+
+data BoolExpr 
+  = BConst Bool
   | BTrue BoolExpr
   | BFalse BoolExpr
   deriving Show
 
-data CondExpr = 
-  IF CondExpr CondExpr (Maybe CondExpr) 
+data CondExpr 
+  = IF CondExpr CondExpr (Maybe CondExpr) 
   | IFELSE CondExpr CondExpr 
 
-data IExpr = 
-  IConst Int 
+data IExpr 
+  = IConstInt Int 
+  | IIdent String 
   | IMul IExpr IExpr
   | IAdd IExpr IExpr 
   deriving Show
 
 
 
-a :: IExpr
-a = IAdd (IMul (IConst 2) (IConst 3)) (IConst 4)
-
-eval :: IExpr -> Int 
-eval (IConst i) = i
-eval (IMul lhs rhs) = eval lhs * eval rhs
-eval (IAdd lhs rhs) = eval lhs + eval rhs
