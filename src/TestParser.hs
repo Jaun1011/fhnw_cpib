@@ -113,7 +113,7 @@ data IDeclaration
   | IGlobImp IFlowMode IChangeMode ICommand
   | ICpsDecl IDeclaration IDeclaration
   | ICpsStoDecl IDeclaration IDeclaration
-    deriving ()
+  deriving ()
 
 data IParamLists
   = IProgParamList  IParamLists IParamLists -- progParam progParam
@@ -129,15 +129,16 @@ data ICommand
   | ICpsCmd ICommand ICommand
   | IGlobInits ICommand
   | IIdents ICommand ICommand
-  | IIdent ICommand 
-  | IIdentChars IExpr IExpr 
+  | IIdent ICommand
+  | IIdentChars String
   | IIdentArray ICommand ICommand
   | IArrayBrackets IExpr
+  | IArrayLength 
   deriving ()
 
 data IExpr
   = IAliteal Int
-  | ILiteral String
+  | ILiteral ICommand
   | IRelOpr IExpr IExpr (Maybe Attirbute)
   | IMult IExpr IExpr  (Maybe Attirbute) 
   | ILogic IExpr IExpr (Maybe Attirbute) 
@@ -209,8 +210,11 @@ termMultP = factorP >>= opt
 factorP :: Parser IExpr
 factorP = IAliteal <$> digit 
     <|> trm LPAREN *> exprP <* trm RPAREN  
-    <|> IIdent <$> ident
+    <|> ILiteral <$> identP
 
+
+identP :: Parser ICommand
+identP = IIdentChars <$> ident
 
 
 
