@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 
-module Model (LogicOperator, RelOperator, Token, Terminal(..), Attirbute(..), transformKeyword, specialChars, AritmeticOperator(..)) where
+module Model (LogicOperator(..), RelOperator, Token, Terminal(..), Attirbute(..), transformKeyword, specialChars, AritmeticOperator(..)) where
 
 import Prelude (Show, Maybe (Just, Nothing), String, Int, snd, fst, ($), otherwise, (||), Char, Bool (True), Eq ((==), (/=)), read, ($), (.), not, Monad, Applicative)
 import Data.Maybe
