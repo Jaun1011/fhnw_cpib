@@ -5,11 +5,15 @@ import Model
 import Scanner (scanner)
 import Model
 import Control.Applicative
-import GHC.RTS.Flags (MiscFlags(installSEHHandlers), ProfFlags (retainerSelector))
+import GHC.RTS.Flags (MiscFlags(installSEHHandlers), ProfFlags (retainerSelector), ParFlags)
 import Data.Type.Bool (Not)
 import Data.Type.Equality (outer)
 import Data.Char
-import GHC.Base (VecElem(Int8ElemRep))
+import GHC.Base (VecElem(Int8ElemRep), Type)
+import Control.Monad (when)
+import GHC.Float (Floating(exp))
+import Data.Maybe (Maybe(Nothing))
+import Debug.Trace
 
 newtype Parser a =
     P {
@@ -20,7 +24,6 @@ instance Functor Parser where
     fmap g p = P $ \inp -> do
         (a, out) <- parse p inp
         return (g a, out)
-
 
 instance Applicative Parser where
     pure v = P $ \inp -> Just (v, inp)
@@ -62,24 +65,29 @@ sat p = do
       else empty
 
 -- consumes terminal
-trm :: Terminal -> Parser Attirbute 
-trm t = do 
+trm :: Terminal -> Parser Token
+trm t = do
     (tc, a) <- item
-    if tc == t 
-        then case a of Just a -> return a
+    
+    if tc == t
+        then return (tc, a)
         else empty
 
+trmA :: Terminal  -> Parser Attirbute 
+trmA t = do 
+    (_, attr) <- trm t
+    case attr of
+        Just a -> return a
+        _ -> empty 
 
-trmAttr :: Attirbute  -> Parser Attirbute 
-trmAttr a = do 
+trmAttr :: Attirbute  -> Parser Attirbute
+trmAttr a = do
     (_, ac) <- item
     case ac of
         Just ac ->
-            if a == ac 
+            if a == ac
             then return ac
-            else empty 
-
-
+            else empty
 
 ident :: Parser String
 ident =  P $ \(a:as) ->
@@ -94,30 +102,35 @@ digit = P $ \(t:ts) ->
         (ALITERAL, Just (IntType i)) -> Just (i, ts)
         _ -> Nothing
 
+
+
+
 data IExpr
-  = IAliteal Int
-  | IIdent String
-  | IMonadic Attirbute IExpr 
-  | IOpr Attirbute IExpr IExpr 
-  | INone
-  deriving ()
+    = IAliteal Int
+    | IIdent String
+    | IMonadic Attirbute IExpr
+    | IOpr Attirbute IExpr IExpr
+    | IExprList IExpr IExpr
+    | INone
+    deriving ()
 
 
 instance Show IExpr where
-    show n = "\n1\t" ++ show' n 2 ++ "\n"
-        
+    show n = "\n\t" ++ show' n 2 ++ "\n"
+
         where
-            show' :: IExpr -> Int -> String 
+            show' :: IExpr -> Int -> String
             show' (IAliteal n) i    = "(IAliteral " ++ show n ++ ")"
             show' (IIdent n) i      = "(IIdent " ++ show n ++ ")"
+            show' (IMonadic a b) i    = "(IMonadic" ++ show a ++ show b ++ ")"
+            show' (IExprList a b) i    = "(IExprList " ++ show a ++ show b ++  ")"
             show' (IOpr n a b ) i    = print "IOpr" a b n i
-            
-            print :: String -> IExpr -> IExpr -> Attirbute -> Int -> String 
-            print s a b attr i = "(" ++ s ++ "\n" 
+            print :: String -> IExpr -> IExpr -> Attirbute -> Int -> String
+            print s a b attr i = "(" ++ s ++ "\n"
                     ++ replicate i '\t'
                     ++ show' a (i+1) ++ "\n"
                     ++ replicate i '\t'
-                    ++ show' b (i+1) 
+                    ++ show' b (i+1)
                     ++ "\n"
                     ++ replicate i '\t'
                     ++ show attr
@@ -125,58 +138,94 @@ instance Show IExpr where
 
 exprP :: Parser IExpr
 exprP = termRelP >>= exprP'
-    where 
+    where
         exprP' :: IExpr -> Parser IExpr
-        exprP' a = do 
+        exprP' a = do
             -- attr (LogicOperator OR)
-            attr <- trm LOGICOPR
+            attr <- trmA LOGICOPR
             b <- termRelP
-            c <- exprP' b 
+            c <- exprP' b
 
             return (IOpr attr c a)
             <|> do return a
 
 termRelP :: Parser IExpr
 termRelP = opt termAddP
-    where 
-        opt a =  
-            IOpr <$> trm RELOPR <*> termAddP <*> a
+    where
+        opt a =
+            IOpr <$> trmA RELOPR <*> termAddP <*> a
             <|> a
 
 termAddP :: Parser IExpr
 termAddP = termMultP>>= opt
-    where 
-        opt a  = do         
-            attr <- trm ADDOPR 
-            b <- termMultP 
+    where
+        opt a  = do
+            attr <- trmA ADDOPR
+            b <- termMultP
             opt (IOpr attr a b)
-            
+
             <|> do return a
 
 
 
 
 termMultP :: Parser IExpr
-termMultP = factorP >>= opt 
-    where 
+termMultP = factorP >>= opt
+    where
         opt :: IExpr -> Parser IExpr
-        opt a  = do         
-            attr <- trm  MULTOPR
+        opt a  = do
+            attr <- trmA MULTOPR
             b <- factorP
             opt (IOpr attr a b)
 
             <|> do return a
 
 factorP :: Parser IExpr
-factorP = IAliteal <$> digit 
-    <|> trm LPAREN *> exprP <* trm RPAREN  
+factorP 
+    = IAliteal <$> digit 
     <|> IIdent <$> ident
-    <|> IMonadic <$> monadicOprP <*>  factorP
+   -- <|> IMonadic <$> monadicOprP <*> factorP
+    <|> trm LPAREN *> exprP <* trm RPAREN
+
+
+
+{-
+
 
 monadicOprP :: Parser Attirbute 
 monadicOprP  = trmAttr (LogicOperator NOT) <|> trm ADDOPR
 
-{-
+
+
+exprListP :: Parser IExpr
+exprListP = do 
+        _ <- trm LPAREN
+
+        a <- exprP
+        b <- opt a
+        _ <- trm RPAREN
+        return b
+    where 
+        opt a = do 
+             trm COMMA 
+             b <- exprP
+             opt (IExprList a b)
+
+
+factorP :: Parser IExpr
+factorP 
+    = IAliteal <$> digit 
+    <|> IIdent <$> ident
+   -- <|> IMonadic <$> monadicOprP <*> factorP
+    <|>
+        do 
+            _ <- trm LPAREN 
+            a <- factorP
+            _ <- trm RPAREN
+            return a
+
+
+
 return (IMul (IConstInt a) (IConstInt n))
 termRelP :: Parser IExpr
 termAddP :: Parser IExpr 

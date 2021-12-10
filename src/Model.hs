@@ -36,6 +36,7 @@ data Terminal
     | LEBRKT | REBRKT
     | SEMICOLON | COMMA
     | LITERAL | ALITERAL
+    | TYPE
     | RELOPR | LOGICOPR | ARITMOPR | DIVOPR | MULTOPR | ADDOPR
     | ENDFUN | ENDIF | ENDPROC | ENDPROGRAM | ENDWHILE
     deriving(Show, Eq)
@@ -46,6 +47,7 @@ data Attirbute
     | LogicOperator LogicOperator
     | DivOperator DivOperator
     | IntType Int
+    | VariableType Type
     | StringType String
     deriving(Show, Eq)
 
@@ -132,7 +134,11 @@ keywords =
     ,("relopr", (RELOPR, Nothing))
     ,("aliteral", (ALITERAL, Nothing))
     ,("typedef", (TYPEDEF, Nothing))
-    ,("unknown", (UNKNOWN, Nothing))]
+    ,("int32", (TYPE, Just (VariableType INT32)))
+    ,("int64", (TYPE, Just (VariableType INT64)))
+    ,("int1024", (TYPE, Just (VariableType INT1024)))
+    ,("unknown", (UNKNOWN, Nothing))
+    ]
 
 
 
