@@ -14,6 +14,9 @@ import Control.Monad (when)
 import GHC.Float (Floating(exp))
 import Data.Maybe (Maybe(Nothing))
 import Debug.Trace
+import Data.Semigroup (option)
+import Model (Terminal(FALSE))
+import Data.Bool (Bool(False))
 
 newtype Parser a =
     P {
@@ -106,11 +109,12 @@ digit = P $ \(t:ts) ->
 
 
 data IExpr
-    = IAliteal Int
-    | IIdent String
+    = IAliteal Int 
+    | ILiteral String Bool -- name , is init?
     | IMonadic Attirbute IExpr
     | IOpr Attirbute IExpr IExpr
-    | IExprList IExpr IExpr
+    | IExprList String IExpr
+    | IExprListParams IExpr IExpr
     | INone
     deriving ()
 
@@ -122,14 +126,24 @@ instance Show IExpr where
             show' :: IExpr -> Int -> String
             show' INone i    = "(INone)"
             show' (IAliteal n) i    = "(IAliteral " ++ show n ++ ")"
-            show' (IIdent n) i      = "(IIdent " ++ show n ++ ")"
+            show' (ILiteral n b) i      = "(ILiteral " ++ show n ++ " " ++ show b ++ ")" 
+
             show' (IExprList a b) i    = "(IExprList " ++ show a ++ show b ++  ")"
+            show' (IExprListParams a b) i    =   printExprList "IExprListParams" a b  i
             
             
             show' (IMonadic a b) i    =  print "IMonadic" b INone a  i
             
             
             show' (IOpr n a b ) i    = print "IOpr" a b n i
+            printExprList :: String -> IExpr -> IExpr -> Int -> String
+            printExprList s a b i = "(" ++ s ++ "\n"
+                    ++ replicate i '\t'
+                    ++ show' a (i+1) ++ "\n"
+                    ++ replicate i '\t'
+                    ++ show' b (i+1)
+                    ++ ")"
+
             print :: String -> IExpr -> IExpr -> Attirbute -> Int -> String
             print s a b attr i = "(" ++ s ++ "\n"
                     ++ replicate i '\t'
@@ -187,32 +201,47 @@ termMultP = factorP >>= opt
 
 factorP :: Parser IExpr
 factorP 
-    = IAliteal <$> digit 
-    <|> IIdent <$> ident
+    = IAliteal <$> digit
+    <|> do
+        i <- ident
+        opt i
+
     <|> trm LPAREN *> exprP <* trm RPAREN
     <|> IMonadic <$> monadicOprP <*> factorP
-
+    where opt i = do
+                e <- exprListP
+                return $IExprList i e
+            <|> do
+                trm INIT 
+                return $ILiteral i True 
+            <|> do return $ILiteral i False  
+            
 
 monadicOprP :: Parser Attirbute 
-monadicOprP  = trmAByAttr (LogicOperator NOT) 
-        <|> trmA ADDOPR
+monadicOprP  
+    = trmAByAttr (LogicOperator NOT) 
+    <|> trmA ADDOPR
 
-
-{-
 
 exprListP :: Parser IExpr
 exprListP = do 
         _ <- trm LPAREN
-
-        a <- exprP
-        b <- opt a
+        e <- exprP
+        n <- opt e 
         _ <- trm RPAREN
-        return b
+        return n
     where 
         opt a = do 
              trm COMMA 
              b <- exprP
-             opt (IExprList a b)
+             opt (IExprListParams a b)
+
+            <|> do return a
+
+
+
+
+{-
 
 
 
