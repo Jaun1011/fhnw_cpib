@@ -15,7 +15,7 @@ import GHC.Float (Floating(exp))
 import Data.Maybe (Maybe(Nothing))
 import Debug.Trace
 import Data.Semigroup (option)
-import Model (Terminal(FALSE))
+import Model (Terminal(FALSE, BECOMES))
 import Data.Bool (Bool(False))
 
 newtype Parser a =
@@ -71,17 +71,17 @@ sat p = do
 trm :: Terminal -> Parser Token
 trm t = do
     (tc, a) <- item
-    
+
     if tc == t
         then return (tc, a)
         else empty
 
-trmA :: Terminal  -> Parser Attirbute 
-trmA t = do 
+trmA :: Terminal  -> Parser Attirbute
+trmA t = do
     (_, attr) <- trm t
     case attr of
         Just a -> return a
-        _ -> empty 
+        _ -> empty
 
 trmAByAttr :: Attirbute  -> Parser Attirbute
 trmAByAttr a = do
@@ -105,11 +105,29 @@ digit = P $ \(t:ts) ->
         (ALITERAL, Just (IntType i)) -> Just (i, ts)
         _ -> Nothing
 
+data ICmd
+    = IBecomes IExpr IExpr
+    | IIf IExpr ICmd
+    | ICmds ICmd ICmd
+    | ISkip
+    | IWhile IExpr ICmd
 
+
+
+cmdP :: Parser ICmd
+cmdP = do
+        e1 <- exprP
+        trm BECOMES
+        IBecomes e1 <$> exprP
+    <|> do
+        trm IF 
+        e1 <- exprP
+        trm THEN 
+        return
 
 
 data IExpr
-    = IAliteal Int 
+    = IAliteal Int
     | ILiteral String Bool -- name , is init?
     | IMonadic Attirbute IExpr
     | IOpr Attirbute IExpr IExpr
@@ -126,15 +144,15 @@ instance Show IExpr where
             show' :: IExpr -> Int -> String
             show' INone i    = "(INone)"
             show' (IAliteal n) i    = "(IAliteral " ++ show n ++ ")"
-            show' (ILiteral n b) i      = "(ILiteral " ++ show n ++ " " ++ show b ++ ")" 
+            show' (ILiteral n b) i      = "(ILiteral " ++ show n ++ " " ++ show b ++ ")"
 
             show' (IExprList a b) i    = "(IExprList " ++ show a ++ show b ++  ")"
             show' (IExprListParams a b) i    =   printExprList "IExprListParams" a b  i
-            
-            
+
+
             show' (IMonadic a b) i    =  print "IMonadic" b INone a  i
-            
-            
+
+
             show' (IOpr n a b ) i    = print "IOpr" a b n i
             printExprList :: String -> IExpr -> IExpr -> Int -> String
             printExprList s a b i = "(" ++ s ++ "\n"
@@ -171,12 +189,13 @@ exprP = termRelP >>= exprP'
 termRelP :: Parser IExpr
 termRelP = opt termAddP
     where
-        opt a =
-            IOpr <$> trmA RELOPR <*> termAddP <*> a
-            <|> a
+        opt a = IOpr <$> trmA RELOPR <*> termAddP <*> a
+             <|> a
+
+
 
 termAddP :: Parser IExpr
-termAddP = termMultP>>= opt
+termAddP = termMultP >>= opt
     where
         opt a  = do
             attr <- trmA ADDOPR
@@ -200,7 +219,7 @@ termMultP = factorP >>= opt
             <|> do return a
 
 factorP :: Parser IExpr
-factorP 
+factorP
     = IAliteal <$> digit
     <|> do
         i <- ident
@@ -212,27 +231,27 @@ factorP
                 e <- exprListP
                 return $IExprList i e
             <|> do
-                trm INIT 
-                return $ILiteral i True 
-            <|> do return $ILiteral i False  
-            
+                trm INIT
+                return $ILiteral i True
+            <|> do return $ILiteral i False
 
-monadicOprP :: Parser Attirbute 
-monadicOprP  
-    = trmAByAttr (LogicOperator NOT) 
+
+monadicOprP :: Parser Attirbute
+monadicOprP
+    = trmAByAttr (LogicOperator NOT)
     <|> trmA ADDOPR
 
 
 exprListP :: Parser IExpr
-exprListP = do 
+exprListP = do
         _ <- trm LPAREN
         e <- exprP
-        n <- opt e 
+        n <- opt e
         _ <- trm RPAREN
         return n
-    where 
-        opt a = do 
-             trm COMMA 
+    where
+        opt a = do
+             trm COMMA
              b <- exprP
              opt (IExprListParams a b)
 

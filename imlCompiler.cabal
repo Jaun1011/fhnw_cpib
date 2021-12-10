@@ -30,8 +30,6 @@ library
       Parser
       ParsingLib
       Scanner
-      TesCode
-      TestParser
   other-modules:
       Paths_imlCompiler
   hs-source-dirs:
