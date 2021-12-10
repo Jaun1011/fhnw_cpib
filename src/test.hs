@@ -80,8 +80,8 @@ trmA t = do
         Just a -> return a
         _ -> empty 
 
-trmAttr :: Attirbute  -> Parser Attirbute
-trmAttr a = do
+trmAByAttr :: Attirbute  -> Parser Attirbute
+trmAByAttr a = do
     (_, ac) <- item
     case ac of
         Just ac ->
@@ -120,10 +120,15 @@ instance Show IExpr where
 
         where
             show' :: IExpr -> Int -> String
+            show' INone i    = "(INone)"
             show' (IAliteal n) i    = "(IAliteral " ++ show n ++ ")"
             show' (IIdent n) i      = "(IIdent " ++ show n ++ ")"
-            show' (IMonadic a b) i    = "(IMonadic" ++ show a ++ show b ++ ")"
             show' (IExprList a b) i    = "(IExprList " ++ show a ++ show b ++  ")"
+            
+            
+            show' (IMonadic a b) i    =  print "IMonadic" b INone a  i
+            
+            
             show' (IOpr n a b ) i    = print "IOpr" a b n i
             print :: String -> IExpr -> IExpr -> Attirbute -> Int -> String
             print s a b attr i = "(" ++ s ++ "\n"
@@ -184,18 +189,16 @@ factorP :: Parser IExpr
 factorP 
     = IAliteal <$> digit 
     <|> IIdent <$> ident
-   -- <|> IMonadic <$> monadicOprP <*> factorP
     <|> trm LPAREN *> exprP <* trm RPAREN
-
-
-
-{-
+    <|> IMonadic <$> monadicOprP <*> factorP
 
 
 monadicOprP :: Parser Attirbute 
-monadicOprP  = trmAttr (LogicOperator NOT) <|> trm ADDOPR
+monadicOprP  = trmAByAttr (LogicOperator NOT) 
+        <|> trmA ADDOPR
 
 
+{-
 
 exprListP :: Parser IExpr
 exprListP = do 
@@ -210,6 +213,11 @@ exprListP = do
              trm COMMA 
              b <- exprP
              opt (IExprList a b)
+
+
+
+
+
 
 
 factorP :: Parser IExpr
