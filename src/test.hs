@@ -17,6 +17,7 @@ import Debug.Trace
 import Data.Semigroup (option)
 import Model (Terminal(FALSE, BECOMES))
 import Data.Bool (Bool(False))
+import GHC.Arr (cmpArray)
 
 newtype Parser a =
     P {
@@ -111,19 +112,29 @@ data ICmd
     | ICmds ICmd ICmd
     | ISkip
     | IWhile IExpr ICmd
-
+    | IDebugIn IExpr
+    | IDebugOut IExpr
+    deriving (Show)
 
 
 cmdP :: Parser ICmd
-cmdP = do
-        e1 <- exprP
-        trm BECOMES
-        IBecomes e1 <$> exprP
-    <|> do
-        trm IF 
-        e1 <- exprP
-        trm THEN 
-        return
+cmdP = IBecomes <$> exprP <* trm ASSIGN <*> exprP
+    <|> return ISkip
+
+
+
+many :: Parser a -> Parser a
+many n = n <*> many 
+
+
+cpsCmdP :: Parser ICmd
+cpsCmdP = cmdP >>= opt 
+    where 
+        opt c1 = do 
+                trm SEMICOLON
+                c2 <- cmdP
+                opt $ICmds c1 c2
+            <|> return c1
 
 
 data IExpr
@@ -142,9 +153,9 @@ instance Show IExpr where
 
         where
             show' :: IExpr -> Int -> String
-            show' INone i    = "(INone)"
+            show' INone i           = "(INone)"
             show' (IAliteal n) i    = "(IAliteral " ++ show n ++ ")"
-            show' (ILiteral n b) i      = "(ILiteral " ++ show n ++ " " ++ show b ++ ")"
+            show' (ILiteral n b) i  = "(ILiteral " ++ show n ++ " " ++ show b ++ ")"
 
             show' (IExprList a b) i    = "(IExprList " ++ show a ++ show b ++  ")"
             show' (IExprListParams a b) i    =   printExprList "IExprListParams" a b  i
@@ -249,6 +260,7 @@ exprListP = do
         n <- opt e
         _ <- trm RPAREN
         return n
+        
     where
         opt a = do
              trm COMMA
