@@ -108,34 +108,75 @@ digit = P $ \(t:ts) ->
 
 data ICmd
     = IBecomes IExpr IExpr
-    | IIf IExpr ICmd
+    | IIf IExpr ICmd ICmd
     | ICmds ICmd ICmd
     | ISkip
     | IWhile IExpr ICmd
     | IDebugIn IExpr
     | IDebugOut IExpr
+    | ICaller String IExpr
     deriving (Show)
+
+
+
+
+ifP :: Parser ICmd
+ifP = IIf <$> (trm IF  *> exprP) <* trm THEN *> cpsCmdP  <* trm ELSE  *> cpsCmdP
+  -- <|> IIf <$> (trm IF  *> exprP) <* trm THEN *> cpsCmdP <*> do return ISkip
+
 
 
 cmdP :: Parser ICmd
 cmdP = IBecomes <$> exprP <* trm ASSIGN <*> exprP
-    <|> return ISkip
+    <|> do
+        trm IF
+        e <- exprP
+        trm THEN
+        c1 <- cpsCmdP
+        trm ELSE
+        IIf e c1 <$> cpsCmdP
+
+    <|> do
+        trm IF
+        e <- exprP
+        trm THEN
+        c1 <- cpsCmdP
+        return $IIf e c1 ISkip
+    <|> do
+        trm WHILE 
+        e <- exprP
+
+        trm DO
+        c <- cpsCmdP
+
+        trm ENDWHILE  
+        return $IWhile e c
+
+    <|> do -- add globInits 
+        trm CALL
+        s <- ident 
+        e <- exprListP
+        return $ICaller s e
+    
+    <|> do 
+        trm DEBUGIN 
+        IDebugIn <$> exprP
+ 
+    <|> do 
+        trm DEBUGOUT  
+        IDebugOut <$> exprP
 
 
 
-many :: Parser a -> Parser a
-many n = n <*> many 
 
 
 cpsCmdP :: Parser ICmd
-cpsCmdP = cmdP >>= opt 
-    where 
-        opt c1 = do 
+cpsCmdP = (cmdP >>= opt)  <|>  cmdP
+    where
+        opt c1 = do
                 trm SEMICOLON
                 c2 <- cmdP
                 opt $ICmds c1 c2
-            <|> return c1
-
 
 data IExpr
     = IAliteal Int
@@ -260,7 +301,7 @@ exprListP = do
         n <- opt e
         _ <- trm RPAREN
         return n
-        
+
     where
         opt a = do
              trm COMMA
@@ -273,12 +314,6 @@ exprListP = do
 
 
 {-
-
-
-
-
-
-
 
 factorP :: Parser IExpr
 factorP 
