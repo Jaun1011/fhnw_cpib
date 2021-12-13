@@ -106,6 +106,103 @@ digit = P $ \(t:ts) ->
         (ALITERAL, Just (IntType i)) -> Just (i, ts)
         _ -> Nothing
 
+
+
+
+
+data IParameter
+    = ILeaf 
+    | IProgParams IParameter IParameter
+    | IProgParam Attirbute  Attirbute  String
+    | IParams IParameter IParameter
+    | IParam FlowMode MechMode ChangeMode String
+    deriving (Show)
+
+data IDecl
+    = IStore Attirbute IDecl  
+    | IFunc
+    | IProc IParameter
+    | ICsp
+    | Type String Attirbute 
+    | IProg IParameter 
+    deriving (Show)
+
+
+
+
+
+programP :: Parser IDecl
+programP = do 
+    trm PROGRAM 
+    trm IDENT  
+    params <- progParamsP
+
+    where
+        cpsDeclP :: Parser IDecl
+        cpsDeclP = do
+            trm GLOBAL
+
+
+
+declP :: Parser IDecl
+declP = storeDeclP 
+    <|> funDecP 
+    <|> procDeclP
+
+
+storeDeclP :: Parser IDecl
+storeDeclP = IStore <$> trm ChangeMode <*> typedIdentP 
+    <|> IStore <$> typedIdentP
+        
+
+
+funDeclP :: Parser IDecl
+funDeclP = do
+    trm FUN 
+    i <- ident
+    ps <-
+
+
+procDeclP :: Parser IDecl
+procDeclP =
+    
+
+progParamsP :: Parser IParameter
+progParamsP = do
+    trm LPAREN 
+    p <- progParamP >>= opti
+    trm RPAREN 
+    return p
+
+    where
+        opti :: IParameter -> Parser IParameter 
+        opti a = do
+                trm COMMA 
+                b <- progParamP
+                opti $IProgParams a b 
+                <|> return a
+
+        -- todo: make flowmode and mechmode optional
+        progParamP :: Parser IParameter
+        progParamP = do
+                fm <- trmA FLOWMODE
+                cm <- trmA MECHMODE  
+                i <- ident
+                return $IProgParam fm cm i
+
+
+typedIdentP :: Parser IDecl
+typedIdentP = do 
+    i <- ident
+    trm TYPEDEF 
+    t <- trmA TYPE
+    return $IntType i t
+
+
+
+
+
+
 data ICmd
     = IBecomes IExpr IExpr
     | IIf IExpr ICmd ICmd
@@ -116,14 +213,6 @@ data ICmd
     | IDebugOut IExpr
     | ICaller String IExpr
     deriving (Show)
-
-
-
-
-ifP :: Parser ICmd
-ifP = IIf <$> (trm IF  *> exprP) <* trm THEN *> cpsCmdP  <* trm ELSE  *> cpsCmdP
-  -- <|> IIf <$> (trm IF  *> exprP) <* trm THEN *> cpsCmdP <*> do return ISkip
-
 
 
 cmdP :: Parser ICmd
@@ -143,32 +232,30 @@ cmdP = IBecomes <$> exprP <* trm ASSIGN <*> exprP
         c1 <- cpsCmdP
         return $IIf e c1 ISkip
     <|> do
-        trm WHILE 
+        trm WHILE
         e <- exprP
 
         trm DO
         c <- cpsCmdP
 
-        trm ENDWHILE  
+        trm ENDWHILE
         return $IWhile e c
 
-    <|> do -- add globInits 
+    <|> do
+        -- add globInits 
         trm CALL
-        s <- ident 
+        s <- ident
         e <- exprListP
+
         return $ICaller s e
-    
-    <|> do 
-        trm DEBUGIN 
+   
+    <|> do
+        trm DEBUGIN
         IDebugIn <$> exprP
- 
-    <|> do 
-        trm DEBUGOUT  
+
+    <|> do
+        trm DEBUGOUT
         IDebugOut <$> exprP
-
-
-
-
 
 cpsCmdP :: Parser ICmd
 cpsCmdP = (cmdP >>= opt)  <|>  cmdP
@@ -177,6 +264,7 @@ cpsCmdP = (cmdP >>= opt)  <|>  cmdP
                 trm SEMICOLON
                 c2 <- cmdP
                 opt $ICmds c1 c2
+
 
 data IExpr
     = IAliteal Int
@@ -238,12 +326,12 @@ exprP = termRelP >>= exprP'
             return (IOpr attr c a)
             <|> do return a
 
+
 termRelP :: Parser IExpr
 termRelP = opt termAddP
     where
         opt a = IOpr <$> trmA RELOPR <*> termAddP <*> a
              <|> a
-
 
 
 termAddP :: Parser IExpr
@@ -255,8 +343,6 @@ termAddP = termMultP >>= opt
             opt (IOpr attr a b)
 
             <|> do return a
-
-
 
 
 termMultP :: Parser IExpr
@@ -309,36 +395,4 @@ exprListP = do
              opt (IExprListParams a b)
 
             <|> do return a
-
-
-
-
-{-
-
-factorP :: Parser IExpr
-factorP 
-    = IAliteal <$> digit 
-    <|> IIdent <$> ident
-   -- <|> IMonadic <$> monadicOprP <*> factorP
-    <|>
-        do 
-            _ <- trm LPAREN 
-            a <- factorP
-            _ <- trm RPAREN
-            return a
-
-
-
-return (IMul (IConstInt a) (IConstInt n))
-termRelP :: Parser IExpr
-termAddP :: Parser IExpr 
-termFactP :: Parser IExpr
-Just (ILogic 
-    (ILogic (ILogic (IAliteal 3) INone Nothing
-    ) (IAliteal 3) (Just OR)) (IAliteal 1) (Just AND),[])
-     
--}
-
-
-
 

@@ -1,7 +1,16 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 
-module Model (LogicOperator(..), RelOperator, Token, Terminal(..), Attirbute(..), transformKeyword, specialChars, AritmeticOperator(..)) where
+module Model (
+    LogicOperator(..), 
+    RelOperator, 
+    Token, 
+    Terminal(..), 
+    Attirbute(..), 
+    transformKeyword, specialChars, 
+
+    FlowMode(..), MechMode(..), ChangeMode(..),
+    AritmeticOperator(..)) where
 
 import Prelude (Show, Maybe (Just, Nothing), String, Int, snd, fst, ($), otherwise, (||), Char, Bool (True), Eq ((==), (/=)), read, ($), (.), not, Monad, Applicative)
 import Data.Maybe
@@ -17,26 +26,27 @@ data Terminal
     | COMMENT
     | ASSIGN
     | BECOMES
-    | COPY
     | TYPEDEF
     | UNKNOWN
     | MODE
-    | VAR | CONST 
+    | FLOWMODE 
+    | MECHMODE
+    | CHANGEMODE 
     | DEBUGIN | DEBUGOUT
     | DO | WHILE
     | BOOL| TRUE | FALSE
     | FUN | RETURNS
     | IF | THEN | ELSE 
-    | IN | OUT
     | INIT | INOUT
     | LOCAL | GLOBAL
     | LENGTH | DOT
-    | PROC | REF 
+    | PROC 
     | LPAREN | RPAREN
     | LEBRKT | REBRKT
     | SEMICOLON | COMMA
     | LITERAL | ALITERAL
     | TYPE
+
     | RELOPR | LOGICOPR | ARITMOPR | DIVOPR | MULTOPR | ADDOPR
     | ENDFUN | ENDIF | ENDPROC | ENDPROGRAM | ENDWHILE
     deriving(Show, Eq)
@@ -48,10 +58,27 @@ data Attirbute
     | DivOperator DivOperator
     | IntType Int
     | VariableType Type
+    | FlowMode FlowMode
+    | MechMode MechMode
+    | ChangeMode ChangeMode
     | StringType String
     deriving(Show, Eq)
 
   
+
+data ChangeMode
+    = CONST
+    | VAR
+    deriving (Show, Eq)
+data MechMode
+    = COPY
+    | REF
+    deriving (Show, Eq)
+data FlowMode 
+    = IN
+    | OUT
+    deriving (Show,Eq)
+
 
 data Type
     = INT32
@@ -104,8 +131,7 @@ keywords =
     ,("bool", (BOOL,Nothing))
     ,("call", (CALL, Nothing))
     ,("length", (LENGTH, Nothing))
-    ,("const", (CONST, Nothing))
-    ,("copy", (COPY, Nothing))
+    ,("const", (CHANGEMODE, Just $ChangeMode CONST))
     ,("debugin", (DEBUGIN, Nothing))
     ,("debugout",  (DEBUGOUT, Nothing))
     ,("do", (DO, Nothing))
@@ -116,18 +142,19 @@ keywords =
     ,("false", (LITERAL, Nothing))
     ,("fun", (FUN, Nothing))
     ,("global", (GLOBAL, Nothing))
-    ,("in", (IN, Nothing))
     ,("init", (INIT, Nothing))
     ,("inout", (INOUT, Nothing))
     ,("local", (LOCAL, Nothing))
-    ,("out", (OUT, Nothing))
+    ,("out", (FLOWMODE, Just $ FlowMode OUT))
+    ,("in", (FLOWMODE, Just $ FlowMode IN))
     ,("proc", (PROC, Nothing))
     ,("program" , (PROGRAM, Nothing))
-    ,("ref", (REF, Nothing))
+    ,("ref", (MECHMODE, Just $MechMode REF))
+    ,("copy", (MECHMODE, Just $MechMode COPY))
     ,("returns", (RETURNS, Nothing))
     ,("skip", (SKIP, Nothing))
     ,("true", (TRUE, Nothing))
-    ,("var", (VAR, Nothing))
+    ,("var", (CHANGEMODE, Just $ ChangeMode VAR))
     ,("becomes", (BECOMES, Nothing))
     ,("semicolon", (SEMICOLON, Nothing))
     ,("comma", (COMMA, Nothing))

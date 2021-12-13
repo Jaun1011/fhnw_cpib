@@ -86,8 +86,3 @@ token :: Token -> Parser Token
 token c = sat (==c)
 
 -- parses a char if it matches the given c
-digit :: Parser Int
-digit = trm ALITERAL
-
-literal :: Parser Token
-literal = trm LITERAL
