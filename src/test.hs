@@ -212,7 +212,22 @@ storeDeclP = do
 
 
 procDeclP :: Parser IDecl
-procDeclP = do return INoDecl
+procDeclP = do 
+    trm PROC 
+    i <- ident
+    ps <- paramsP
+    gi  <- trm GLOBAL    *> globImpsP        <|> return INoParameter
+    li  <- trm LOCAL     *> cpsStoreDeclP    <|> return INoDecl
+
+    trm DO 
+    cmds <- cpsCmdP
+    trm ENDPROC 
+    
+    return INoDecl
+
+
+
+
 
 progParamsP :: Parser IParameter
 progParamsP = do
@@ -439,10 +454,8 @@ monadicOprP
 
 exprListP :: Parser IExpr
 exprListP = do
-        _ <- trm LPAREN
-        e <- exprP
-        n <- opt e
-        _ <- trm RPAREN
+        e <- trm LPAREN *> exprP
+        n <- opt e <* trm RPAREN
         return n
 
     where
