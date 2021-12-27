@@ -15,7 +15,7 @@ import GHC.Float (Floating(exp))
 import Data.Maybe (Maybe(Nothing))
 import Debug.Trace
 import Data.Semigroup (option)
-import Model (Terminal(FALSE, BECOMES))
+import Model (Terminal(FALSE, BECOMES, ENDPROGRAM))
 import Data.Bool (Bool(False))
 import GHC.Arr (cmpArray)
 
@@ -23,6 +23,7 @@ newtype Parser a =
     P {
         parse :: [Token] -> Maybe (a, [Token])
     }
+
 
 instance Functor Parser where
     fmap g p = P $ \inp -> do
@@ -107,100 +108,156 @@ digit = P $ \(t:ts) ->
         _ -> Nothing
 
 
-
-
-
 data IParameter
-    = ILeaf 
+    = INoParameter
     | IProgParams IParameter IParameter
-    | IProgParam Attirbute  Attirbute  String
+
     | IParams IParameter IParameter
-    | IParam FlowMode MechMode ChangeMode String
+    | IParam Attirbute Attirbute Attirbute IDecl
+
+    | IGlobalImp Attirbute Attirbute IDecl
+    | IStoreParams IParameter IDecl
+
+    | ILocalImps IParameter IParameter
+
     deriving (Show)
 
 data IDecl
-    = IStore Attirbute IDecl  
-    | IFunc
+    = IDeclItem IDecl IDecl
+    | IStore Attirbute IDecl
+    | IFunc String IParameter IDecl IParameter IDecl ICmd
     | IProc IParameter
     | ICsp
-    | Type String Attirbute 
-    | IProg IParameter 
+    | IType String Attirbute
+    | IProg String IParameter IDecl ICmd
+    | INoDecl
     deriving (Show)
 
 
-
-
-
 programP :: Parser IDecl
-programP = do 
-    trm PROGRAM 
-    trm IDENT  
+programP = do
+    trm PROGRAM
+    name <- ident
     params <- progParamsP
+    cps <- optCps
+
+    trm DO
+    cmds <- cpsCmdP
+    trm ENDPROGRAM
+    return $IProg name params cps cmds
 
     where
-        cpsDeclP :: Parser IDecl
-        cpsDeclP = do
+        optCps :: Parser IDecl
+        optCps = do
             trm GLOBAL
+            cpsDeclP
+           <|> return INoDecl
 
 
+cpsDeclP :: Parser IDecl
+cpsDeclP = declP >>= repDecl
+    where
+        repDecl a = do
+                trm SEMICOLON
+                b <- declP
+                repDecl $IDeclItem a b
+            <|> return a
+
+cpsStoreDeclP :: Parser IDecl
+cpsStoreDeclP = storeDeclP >>=  rep
+    where 
+        rep a = do
+                b <- trm SEMICOLON *> storeDeclP
+                rep $IDeclItem a b
+            <|> return a
 
 declP :: Parser IDecl
-declP = storeDeclP 
-    <|> funDecP 
+declP = storeDeclP
+    <|> funDeclP
     <|> procDeclP
-
-
-storeDeclP :: Parser IDecl
-storeDeclP = IStore <$> trm ChangeMode <*> typedIdentP 
-    <|> IStore <$> typedIdentP
-        
 
 
 funDeclP :: Parser IDecl
 funDeclP = do
-    trm FUN 
-    i <- ident
-    ps <-
+    i   <- trm FUN       *> ident
+    ps  <- paramsP
+    sd  <- trm RETURNS   *> storeDeclP
+    gi  <- trm GLOBAL    *> globImpsP        <|> return INoParameter
+    li  <- trm LOCAL     *> cpsStoreDeclP    <|> return INoDecl
+    cps <- trm DO *> cpsCmdP <* trm ENDFUN 
+
+    return $IFunc i ps sd gi li cps
+
+
+globImpsP :: Parser IParameter
+globImpsP = globImpP >>= rep
+    where rep a = do
+                trm COMMA
+                b <- globImpP
+                rep $IProgParams a b
+                <|> return a
+
+
+globImpP :: Parser IParameter
+globImpP = do
+    fm <- trmA FLOWMODE     <|> return (FlowMode IN)
+    cm <- trmA CHANGEMODE   <|> return (ChangeMode VAR)
+    IGlobalImp fm cm <$> typedIdentP
+
+
+storeDeclP :: Parser IDecl
+storeDeclP = do
+    cm <- trmA CHANGEMODE <|> return (ChangeMode VAR)
+    IStore cm <$> typedIdentP
 
 
 procDeclP :: Parser IDecl
-procDeclP =
-    
+procDeclP = do return INoDecl
 
 progParamsP :: Parser IParameter
 progParamsP = do
-    trm LPAREN 
-    p <- progParamP >>= opti
-    trm RPAREN 
+        trm LPAREN
+        p <- globImpsP
+        trm RPAREN
+        return p
+    <|> do
+        trm LPAREN
+        trm RPAREN
+        return INoParameter
+        -- todo: make flowmode and mechmode optional
+
+
+paramsP :: Parser IParameter
+paramsP = do
+    trm LPAREN
+    p <- paramP >>= opti
+    trm RPAREN
     return p
 
     where
-        opti :: IParameter -> Parser IParameter 
+        opti :: IParameter -> Parser IParameter
         opti a = do
-                trm COMMA 
-                b <- progParamP
-                opti $IProgParams a b 
+                trm COMMA
+                b <- paramP
+                opti $IParams a b
                 <|> return a
 
         -- todo: make flowmode and mechmode optional
-        progParamP :: Parser IParameter
-        progParamP = do
-                fm <- trmA FLOWMODE
-                cm <- trmA MECHMODE  
-                i <- ident
-                return $IProgParam fm cm i
+        paramP :: Parser IParameter
+        paramP = do
+                fm <- trmA FLOWMODE   <|> return (FlowMode IN)
+                mm <- trmA MECHMODE   <|> return (MechMode  REF)
+                cm <- trmA CHANGEMODE <|> return (ChangeMode VAR)
+                i <- typedIdentP
+                return $IParam fm mm cm i
 
 
 typedIdentP :: Parser IDecl
-typedIdentP = do 
+typedIdentP = do
     i <- ident
-    trm TYPEDEF 
+    trm TYPEDEF
     t <- trmA TYPE
-    return $IntType i t
-
-
-
-
+    return $IType i t
 
 
 data ICmd
@@ -248,7 +305,7 @@ cmdP = IBecomes <$> exprP <* trm ASSIGN <*> exprP
         e <- exprListP
 
         return $ICaller s e
-   
+
     <|> do
         trm DEBUGIN
         IDebugIn <$> exprP

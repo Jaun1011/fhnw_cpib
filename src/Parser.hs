@@ -28,9 +28,6 @@ factor = do trm LPAREN
             return x          
          <|> literal 
 
-
-
-
 literal :: Parser IExpr
 literal = do 
     lit <- some literal
