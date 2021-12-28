@@ -128,7 +128,7 @@ data IDecl
     = IDeclItem IDecl IDecl
     | IStore Attirbute IDecl
     | IFunc String IParameter IDecl IParameter IDecl ICmd
-    | IProc IParameter
+    | IProc String IParameter IParameter IDecl ICmd
     | ICsp
     | IType String Attirbute
     | IProg String IParameter IDecl ICmd
@@ -139,12 +139,13 @@ data IDecl
 
 funCode :: String 
 funCode = "fun fact1024(n:int32) returns var fact:int1024  do schinken init := 2 endfun"
-cmdTest = "a := 1; b := 2"
+procCode = "  proc euclidDivNat (in copy const a:int1024, out copy var numIt:int32)  do g := g endproc "
+cmdTest = "if a = b then a := 1 else a := 2 endif; while x = y do x := y endwhile"
 
 
 
 fun =  (scanner funCode)
-prog =   (scanner ("program Factorial (in n:int32) global " ++ funCode ++ " do " ++ cmdTest ++"endprogram"))
+prog =   (scanner ("program Factorial (in n:int32) global " ++ funCode ++ "; " ++ procCode ++ " do " ++ cmdTest ++" endprogram"))
 
 
 
@@ -222,21 +223,12 @@ storeDeclP = do
 
 procDeclP :: Parser IDecl
 procDeclP = do 
-    trm PROC 
-    i <- ident
+    i <- trm PROC *> ident
     ps <- paramsP
-    gi  <- trm GLOBAL    *> globImpsP        <|> return INoParameter
-    li  <- trm LOCAL     *> cpsStoreDeclP    <|> return INoDecl
-
-    trm DO 
-    cmds <- cpsCmdP
-    trm ENDPROC 
-    
-    return INoDecl
-
-
-
-
+    gi  <- trm GLOBAL *> globImpsP <|> return INoParameter
+    li  <- trm LOCAL *> cpsStoreDeclP <|> return INoDecl
+    cmds <- trm DO *> cpsCmdP <* trm ENDPROC
+    return $IProc i ps gi li cmds
 
 progParamsP :: Parser IParameter
 progParamsP = do
@@ -248,7 +240,6 @@ progParamsP = do
         trm LPAREN
         trm RPAREN
         return INoParameter
-    <|> error "progParamsP"
 
         -- todo: make flowmode and mechmode optional
 
@@ -297,39 +288,33 @@ data ICmd
     | ICaller String IExpr
     deriving (Show)
 
+cpsCmdP :: Parser ICmd
+cpsCmdP = cmdP >>= opt
+    where
+        opt a = do
+                trm SEMICOLON
+                b <- cmdP
+
+                opt $ICmds a b
+            <|> return a
 
 cmdP :: Parser ICmd
-cmdP = IBecomes <$> exprP <* trm ASSIGN <*> exprP
-    <|> do
-        trm IF
-        e <- exprP
-        trm THEN
-        c1 <- cpsCmdP
-        trm ELSE
-        IIf e c1 <$> cpsCmdP
+cmdP = do 
+        e <- trm IF *> exprP
+        t <- trm THEN *> cpsCmdP
+        f <- (trm ELSE *> cpsCmdP <|> return ISkip) <* trm ENDIF 
+
+        return (IIf e t f)
 
     <|> do
-        trm IF
-        e <- exprP
-        trm THEN
-        c1 <- cpsCmdP
-        return $IIf e c1 ISkip
-    <|> do
-        trm WHILE
-        e <- exprP
-
-        trm DO
-        c <- cpsCmdP
-
-        trm ENDWHILE
+        e <- trm WHILE *> exprP
+        c <- trm DO *> cpsCmdP <* trm ENDWHILE
         return $IWhile e c
 
     <|> do
         -- add globInits 
-        trm CALL
-        s <- ident
+        s <- trm CALL *> ident
         e <- exprListP
-
         return $ICaller s e
 
     <|> do
@@ -339,15 +324,14 @@ cmdP = IBecomes <$> exprP <* trm ASSIGN <*> exprP
     <|> do
         trm DEBUGOUT
         IDebugOut <$> exprP
+      {-
+-}
+    <|> do
+        a <- exprP
+        b <- trm ASSIGN *> exprP
+        return $IBecomes a b  
 
-cpsCmdP :: Parser ICmd
-cpsCmdP = cmdP >>= opt
-    where
-        opt a = do
-                trm SEMICOLON
-                b <- cmdP
-                opt $ICmds a b
-            <|> return a
+
 
 
 data IExpr
@@ -408,14 +392,17 @@ exprP = termRelP >>= exprP'
             c <- exprP' b
 
             return (IOpr attr c a)
-            <|> do return a
+            <|> return a
 
 
 termRelP :: Parser IExpr
-termRelP = opt termAddP
+termRelP = termAddP >>= opt
     where
-        opt a = IOpr <$> trmA RELOPR <*> termAddP <*> a
-             <|> a
+        opt a = do
+            attr <- trmA RELOPR
+            b <- termAddP
+            return $IOpr attr b a
+            <|> return a
 
 
 termAddP :: Parser IExpr
@@ -426,7 +413,7 @@ termAddP = termMultP >>= opt
             b <- termMultP
             opt (IOpr attr a b)
 
-            <|> do return a
+            <|> return a
 
 
 termMultP :: Parser IExpr
@@ -437,8 +424,7 @@ termMultP = factorP >>= opt
             attr <- trmA MULTOPR
             b <- factorP
             opt (IOpr attr a b)
-
-            <|> do return a
+            <|> return a
 
 factorP :: Parser IExpr
 factorP
