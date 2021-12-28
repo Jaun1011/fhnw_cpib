@@ -1,88 +1,125 @@
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+
+
 {-# LANGUAGE LambdaCase #-}
-module ParsingLib (module ParsingLib, module Control.Applicative) where
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
+module ParsingLib (
+   Parser,
+   parse,
+   item,
+   ident,
+   digit,
+   trm,
+   trmA,
+   trmAByAttr
+) where 
+
+
+import Model
+import Scanner (scanner)
+import Model
 import Control.Applicative
+import GHC.RTS.Flags (MiscFlags(installSEHHandlers), ProfFlags (retainerSelector), ParFlags)
+import Data.Type.Bool (Not)
+import Data.Type.Equality (outer)
 import Data.Char
-import Scanner
-import Model ( Token, Terminal(..) )
-import GHC.TypeLits (AppendSymbol)
+import GHC.Base (VecElem(Int8ElemRep), Type)
+import Control.Monad (when)
+import GHC.Float (Floating(exp))
+import Data.Maybe (Maybe(Nothing))
+import Debug.Trace
+import Data.Semigroup (option)
+import Model (Terminal(FALSE, BECOMES, ENDPROGRAM))
+import Data.Bool (Bool(False))
+import GHC.Arr (cmpArray)
+import System.IO (putStrLn)
+import Control.Monad.IO.Class (MonadIO(liftIO))
 
 
--- Takes a string and returns a maybe of  "a" and the string which wasn't consumed
-newtype Parser a = P {
-   parse :: [Token] -> Maybe (a, [Token])
-}
+newtype Parser a =
+    P {
+        parse :: [Token] -> Maybe (a, [Token])
+    }
 
 
--- Functor needed to map multiple parser at each other
 instance Functor Parser where
-   -- fmap :: (a -> b) -> Parser a -> Parser b
-   fmap g p = P (\inp -> case parse p inp of
-                           Nothing     -> Nothing 
-                           Just (a, out) -> Just (g a, out))
+    fmap g p = P $ \inp -> do
+        (a, out) <- parse p inp
+        return (g a, out)
 
--- applicative instace to chain parsers
 instance Applicative Parser where
-   --pure :: a -> Parser a
-   pure v = P (\inp -> Just (v, inp))
-   -- <*> :: Parser (a->b) -> Parser a -> Parser b
-   pg <*> pa = P (\inp -> 
-      case parse pg inp of
-         Nothing     -> Nothing
-         Just (g,out)-> case parse pa out of
-                           Nothing        -> Nothing 
-                           Just (a, out') -> Just (g a, out'))
+    pure v = P $ \inp -> Just (v, inp)
+    pg <*> pa = P $ \inp -> do
+        (g, out) <- parse pg inp
+        (a, out') <- parse pa out
+        return (g a, out')
 
+instance Alternative Parser where
+    empty = P $ const Nothing
+    p <|> q = P $ \inp ->
+        case parse p inp of
+            Nothing  -> parse q inp
+            Just (v, out) -> Just (v, out)
 
--- alternative has two methods "empty" and "choice -> takes 2 things an chooses one"
--- Making choices
-instance Alternative Parser where 
-   --empty :: Parser a
-   empty = P (\inp -> Nothing )
-   -- (<|>) :: Parser a -> Parser a -> Parser a
-   -- try either p or q if p works don't look at q
-   p <|> q = P (\inp -> 
-      case parse p inp of 
-         Nothing       -> parse q inp   -- If Parser p fails
-         Just (v, out) -> Just (v,out)) -- If parser p succeeds
-
-
--- monad is used to remove case based code duplication, basically composition of even func
 instance Monad Parser where
-    -- (>>=) :: Parser a -> (a -> Parser b) -> Parser b
-    pa >>= f = P (\inp -> 
+    pa >>= f = P (\inp ->
        case parse pa inp of
-          Nothing      -> Nothing 
-          Just (a, rest) -> parse (f a) rest)
+            Nothing      -> Nothing
+            Just (a, rest) -> parse (f a) rest)
 
 
--- parses a Char if predicate p is evaluated as true
-sat :: (Token -> Bool) -> Parser Token 
-sat p = do 
+next :: (a -> b) -> [a] -> Maybe (b, [a])
+next  _ [] = Nothing
+next  fn (c:cs) =  Just (fn c, cs)
+
+
+item :: Parser Token
+item = P (next id)
+
+
+sat :: (Token -> Bool) -> Parser Token
+sat p = do
    -- parses item and gets access to char
    c <- item
    -- if the char = predikate give pure c back or with empty the failed parser
-   if p c 
-      then return c 
+   if p c
+      then return c
       else empty
 
+-- consumes terminal
+trm :: Terminal -> Parser Token
+trm t = do
+    (tc, a) <- item
 
--- parses any char
-item :: Parser Token
-item = P (\inp -> 
-      case inp of
-         (c:cs) -> Just (c, cs)
-         _  -> Nothing)
+    if tc == t
+        then return (tc, a)
+        else empty
+
+trmA :: Terminal  -> Parser Attirbute
+trmA t = do
+    (_, attr) <- trm t
+    case attr of
+        Just a -> return a
+        _ -> empty
+
+trmAByAttr :: Attirbute  -> Parser Attirbute
+trmAByAttr a = do
+    (_, ac) <- item
+    case ac of
+        Just ac ->
+            if a == ac
+            then return ac
+            else empty
+
+ident :: Parser String
+ident =  P $ \(a:as) ->
+    case a of
+        (LITERAL, Just (StringType i)) -> Just (i, as)
+        _ -> Nothing
 
 
-
-
-
-
-
--- parses a char if it matches the given c
-token :: Token -> Parser Token
-token c = sat (==c)
-
--- parses a char if it matches the given c
+digit :: Parser Int
+digit = P $ \(t:ts) ->
+    case t of
+        (ALITERAL, Just (IntType i)) -> Just (i, ts)
+        _ -> Nothing

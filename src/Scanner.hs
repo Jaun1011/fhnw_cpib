@@ -21,6 +21,7 @@ scanner a =
             let (rs, t) = scannerLiteral as 
             in transformKeyword t : scanner rs
 
+
 scannerLiteral :: String -> (String, Token)
 scannerLiteral [] = ([], (UNKNOWN ,Nothing))
 scannerLiteral all@(a:as) =
