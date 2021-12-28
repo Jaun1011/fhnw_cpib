@@ -18,6 +18,8 @@ import Data.Semigroup (option)
 import Model (Terminal(FALSE, BECOMES, ENDPROGRAM))
 import Data.Bool (Bool(False))
 import GHC.Arr (cmpArray)
+import System.IO (putStrLn)
+import Control.Monad.IO.Class (MonadIO(liftIO))
 
 newtype Parser a =
     P {
@@ -134,24 +136,31 @@ data IDecl
     deriving (Show)
 
 
+
+funCode :: String 
+funCode = "fun fact1024(n:int32) returns var fact:int1024  do schinken init := 2 endfun"
+cmdTest = "a := 1; b := 2"
+
+
+
+fun =  (scanner funCode)
+prog =   (scanner ("program Factorial (in n:int32) global " ++ funCode ++ " do " ++ cmdTest ++"endprogram"))
+
+
+
+
 programP :: Parser IDecl
 programP = do
-    trm PROGRAM
-    name <- ident
-    params <- progParamsP
-    cps <- optCps
-
-    trm DO
-    cmds <- cpsCmdP
-    trm ENDPROGRAM
+    name    <- trm PROGRAM *> ident
+    params  <- progParamsP
+    cps     <- trm GLOBAL *> optCps
+    cmds    <- trm DO *> cpsCmdP <* trm ENDPROGRAM
+    
     return $IProg name params cps cmds
 
     where
         optCps :: Parser IDecl
-        optCps = do
-            trm GLOBAL
-            cpsDeclP
-           <|> return INoDecl
+        optCps = cpsDeclP <|> return INoDecl
 
 
 cpsDeclP :: Parser IDecl
@@ -239,6 +248,8 @@ progParamsP = do
         trm LPAREN
         trm RPAREN
         return INoParameter
+    <|> error "progParamsP"
+
         -- todo: make flowmode and mechmode optional
 
 
@@ -330,12 +341,13 @@ cmdP = IBecomes <$> exprP <* trm ASSIGN <*> exprP
         IDebugOut <$> exprP
 
 cpsCmdP :: Parser ICmd
-cpsCmdP = (cmdP >>= opt)  <|>  cmdP
+cpsCmdP = cmdP >>= opt
     where
-        opt c1 = do
+        opt a = do
                 trm SEMICOLON
-                c2 <- cmdP
-                opt $ICmds c1 c2
+                b <- cmdP
+                opt $ICmds a b
+            <|> return a
 
 
 data IExpr
