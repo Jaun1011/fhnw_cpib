@@ -30,6 +30,7 @@ library
       Parser
       ParsingLib
       Scanner
+      TypeChecker
   other-modules:
       Paths_imlCompiler
   hs-source-dirs:

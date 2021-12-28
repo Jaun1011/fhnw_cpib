@@ -1,0 +1,15 @@
+
+program Euclid()
+  global
+    proc map(in var values:int1024[], in const size:int1024)
+      local
+        i:int32
+      do
+        values := 10 * values[0]
+
+    endproc;
+    
+    globval:int1024[10]
+do
+  call test(globval, 10)
+endprogram

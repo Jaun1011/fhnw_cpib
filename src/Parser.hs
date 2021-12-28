@@ -4,7 +4,8 @@
 module Parser (
   IExpr(..),
   IParameter(..),
-  IDecl(..)
+  IDecl(..),
+  parseProgram
 ) where
 
 import Model
@@ -27,6 +28,8 @@ import Data.Bool (Bool(False))
 import GHC.Arr (cmpArray)
 import System.IO (putStrLn)
 import Control.Monad.IO.Class (MonadIO(liftIO))
+import ParsingLib (Parser(parse))
+import Debug.Trace (trace)
 
 data IParameter
     = INoParameter
@@ -49,7 +52,7 @@ data IDecl
     | IProc String IParameter IParameter IDecl ICmd
     | ICsp
     | IType String Attirbute
-    | IArrayType String Int Attirbute 
+    | IArrayType String IExpr Attirbute
     | IProg String IParameter IDecl ICmd
     | INoDecl
     deriving (Show)
@@ -68,6 +71,7 @@ data ICmd
 data IExpr
     = IAliteal Int
     | ILiteral String Bool -- name , is init?
+    | ILiteralArray String IExpr -- name , is init?
     | IMonadic Attirbute IExpr
     | IOpr Attirbute IExpr IExpr
     | IExprList String IExpr
@@ -83,6 +87,7 @@ instance Show IExpr where
             show' INone i           = "(INone)"
             show' (IAliteal n) i    = "(IAliteral " ++ show n ++ ")"
             show' (ILiteral n b) i  = "(ILiteral " ++ show n ++ " " ++ show b ++ ")"
+            show' (ILiteralArray n b) i  = "(ILiteralArray " ++ show n ++ " " ++ show b ++ ")"
 
             show' (IExprList a b) i    = "(IExprList " ++ show a ++ show b ++  ")"
             show' (IExprListParams a b) i    =   printExprList "IExprListParams" a b  i
@@ -112,15 +117,11 @@ instance Show IExpr where
                     ++ ")"
 
 
-
-{-testdaten-}
-funCode = "fun fact1024(n:int32) returns var fact:int1024  do schinken init := 2 endfun"
-procCode = "  proc euclidDivNat (in copy const a:int1024, out copy var numIt:int32)  do g := g*2 endproc "
-cmdTest = "if a = b then // asdf \n a := 1 else a := 2;b := a endif; while x = y do x := y endwhile"
-prog =   (scanner ("program Factorial (in n:int32) global " ++ funCode ++ "; " ++ procCode ++ " do " ++ cmdTest ++" endprogram"))
+traceMonad :: (Show a, Monad m) => String ->  a -> m a
+traceMonad msg x = trace ("["++msg ++ "]\t"++ show x) (return x)
 
 
-parseProgram :: [Token] -> IDecl 
+parseProgram :: [Token] -> IDecl
 parseProgram ts = case parse programP fts of
         Just (a,[]) -> a
         otherwise  -> error "parser error"
@@ -128,11 +129,18 @@ parseProgram ts = case parse programP fts of
 
 programP :: Parser IDecl
 programP = do
+
     name    <- trm PROGRAM *> ident
     params  <- progParamsP
     cps     <- trm GLOBAL *> optCps
     cmds    <- trm DO *> cpsCmdP <* trm ENDPROGRAM
-    
+
+
+    traceMonad "programP name" name
+    traceMonad "programP params" params
+    traceMonad "programP cps" cps
+    traceMonad "programP cmds" cmds
+
     return $IProg name params cps cmds
 
     where
@@ -151,7 +159,7 @@ cpsDeclP = declP >>= repDecl
 
 cpsStoreDeclP :: Parser IDecl
 cpsStoreDeclP = storeDeclP >>=  rep
-    where 
+    where
         rep a = do
                 b <- trm SEMICOLON *> storeDeclP
                 rep $IDeclItem a b
@@ -170,7 +178,7 @@ funDeclP = do
     sd  <- trm RETURNS   *> storeDeclP
     gi  <- trm GLOBAL    *> globImpsP        <|> return INoParameter
     li  <- trm LOCAL     *> cpsStoreDeclP    <|> return INoDecl
-    cps <- trm DO *> cpsCmdP <* trm ENDFUN 
+    cps <- trm DO *> cpsCmdP <* trm ENDFUN
 
     return $IFunc i ps sd gi li cps
 
@@ -198,11 +206,11 @@ storeDeclP = do
 
 
 procDeclP :: Parser IDecl
-procDeclP = do 
+procDeclP = do
     i    <- trm PROC *> ident
     ps   <- paramsP
-    gi   <- trm GLOBAL *> globImpsP <|> return INoParameter
-    li   <- trm LOCAL *> cpsStoreDeclP <|> return INoDecl
+    gi   <- trm GLOBAL *> globImpsP     <|> return INoParameter
+    li   <- trm LOCAL *> cpsStoreDeclP  <|> return INoDecl
     cmds <- trm DO *> cpsCmdP <* trm ENDPROC
     return $IProc i ps gi li cmds
 
@@ -246,31 +254,38 @@ paramsP = do
 
 
 typedIdentP :: Parser IDecl
-typedIdentP = do
-    i <- ident
-    t <- trm TYPEDEF *> trmA TYPE
-    return $IType i t
+typedIdentP = typedIdentArrayP <|> do
+        i <- ident
+        t <- trm TYPEDEF *> trmA TYPE
+        return $IType i t
 
 
-
+typedIdentArrayP :: Parser IDecl
+typedIdentArrayP =  do
+        i <- ident
+        t <- trm TYPEDEF *> trmA TYPE
+        size <- opt <|> trm LEBRKT *> exprP <* trm REBRKT  
+        return $IArrayType i size t
+     where
+         opt = do
+            trm LEBRKT  
+            trm REBRKT
+            return INone
 
 {- commands -}
 cpsCmdP :: Parser ICmd
 cpsCmdP = cmdP >>= opt
     where
         opt a = do
-                trm SEMICOLON
-                b <- cmdP
-
+                b <- trm SEMICOLON *> cmdP
                 opt $ICmds a b
             <|> return a
 
 cmdP :: Parser ICmd
-cmdP = do 
+cmdP = do
         e <- trm IF *> exprP
         t <- trm THEN *> cpsCmdP
-        f <- (trm ELSE *> cpsCmdP <|> return ISkip) <* trm ENDIF 
-
+        f <- (trm ELSE *> cpsCmdP <|> return ISkip) <* trm ENDIF
         return (IIf e t f)
 
     <|> do
@@ -295,7 +310,7 @@ cmdP = do
     <|> do
         a <- exprP
         b <- trm ASSIGN *> exprP
-        return $IBecomes a b  
+        return $IBecomes a b
 
 {- expressions -}
 exprP :: Parser IExpr
@@ -346,15 +361,16 @@ termMultP = factorP >>= opt
 factorP :: Parser IExpr
 factorP
     = IAliteal <$> digit
-    <|> do
-        i <- ident
-        opt i
+    <|> (ident >>= opt)
 
     <|> trm LPAREN *> exprP <* trm RPAREN
     <|> IMonadic <$> monadicOprP <*> factorP
     where opt i = do
                 e <- exprListP
                 return $IExprList i e
+            <|> do
+                s <- trm LEBRKT *> exprP <*trm REBRKT
+                return $ILiteralArray i s
             <|> do
                 trm INIT
                 return $ILiteral i True
@@ -375,9 +391,7 @@ exprListP = do
 
     where
         opt a = do
-             trm COMMA
-             b <- exprP
+             b <-  trm COMMA *> exprP
              opt (IExprListParams a b)
-
             <|> do return a
 

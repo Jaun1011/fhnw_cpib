@@ -2,17 +2,18 @@
 <program> ::= PROGRAM IDENT <progParamList> [GLOBAL <cpsDecl>] DO <cpsCmd> ENDPROGRAM;
 
 (*declarations*)
+<cpsDecl> ::= <decl> {SEMICOLON <decl>};
 <decl> ::= <stoDecl> | <funDecl> | <procDecl>;
+
+
+<cpsStoDecl> ::= <stoDecl> {SEMICOLON <stoDecl>};
 <stoDecl> ::= [CHANGEMODE] <typedIdent>;
 <funDecl> ::= FUN IDENT <paramList> RETURNS <stoDecl> [GLOBAL <globImps>] [LOCAL <cpsStoDecl>] DO <cpsCmd> ENDFUN;
-
 <procDecl> ::= PROC IDENT <paramList> [GLOBAL <globImps>] [LOCAL <cpsStoDecl>] DO <cpsCmd> ENDPROC;
 
 <globImps> ::= <globImp> {COMMA <globImp>};
 <globImp> ::= [FLOWMODE] [CHANGEMODE] IDENT;
 
-<cpsDecl> ::= <decl> {SEMICOLON <decl>};
-<cpsStoDecl> ::= <stoDecl> {SEMICOLON <stoDecl>};
 
 (*parameter lists*)
 <progParamList> ::= LPAREN [<progParam>  {COMMA <progParam>}] RPAREN;
@@ -22,7 +23,7 @@
 <param> ::= [FLOWMODE] [MECHMODE] [CHANGEMODE] <typedIdent>;
 
 <typedIdent> ::= IDENT COLON <atomtype> [<arrayBrackets>];
-<atomtype> ::= (INT | INT32 | INT1024 | BOOL);
+<atomtype> ::= INT | INT32 | INT1024 | BOOL;
 
 
 (*commands*)

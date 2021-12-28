@@ -15,8 +15,9 @@ global
   local
     var g':int1024
   do
-    g init := a ; g' init := b ;
-    numIt init := 0 ;
+    g init := a;
+    g' init := b;
+    numIt init := 0;
     while g' > 0
       //invariant g >= 0 /\? g' >= 0
       //invariant gcd(g, g') = gcd(a, b)
@@ -26,7 +27,7 @@ global
       call swap(g, g') ;
       numIt := numIt + 1
     endwhile
-  endproc ;
+  endproc;
 
   proc swap(inout ref var x:int1024, inout ref var y:int1024)
   local const h:int1024
