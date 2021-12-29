@@ -118,16 +118,19 @@ instance Show IExpr where
 
 
 fun = "fun certificate(a:int1024) returns c:bool do c init := -sign * u' * g = b /\\? +sign * v' * g = a /\\? u * a + v * b = g endfun "
-
-
+proced = "    proc euclidDivNat(in copy const a:int1024) local var g':int1024 do g init := a; g' init := b; numIt init := 0 endproc "
 
 
 
 parseProgram :: [Token] -> IDecl
-parseProgram ts = case parse programP fts of
-        Just (a,[]) -> a
-        otherwise  -> error "parser error"
+parseProgram ts = 
+        case parse programP fts of
+            Just (a,[]) -> a
+            Just (a, n)  -> error $"parser error" ++ show n
+            otherwise -> error "nullerror"
       where fts = filter (\(a,b) -> a /= COMMENT ) ts
+
+
 
 programP :: Parser IDecl
 programP = do
@@ -178,20 +181,19 @@ declP = storeDeclP
 
 funDeclP :: Parser IDecl
 funDeclP = do
-    i   <- trm FUN       *> ident
+    i   <- trm FUN *> ident
     info "funDeclP" i
 
     ps  <- paramsP
     info "funDeclP" ps
 
-    sd  <- trm RETURNS   *> storeDeclP
+    sd  <- trm RETURNS *> storeDeclP
     info "funDeclP" sd
 
-    gi  <- trm GLOBAL    *> globImpsP        <|> return INoParameter
+    gi  <- trm GLOBAL *> globImpsP <|> return INoParameter
     info "funDeclP" gi
     
-    
-    li  <- trm LOCAL     *> cpsStoreDeclP    <|> return INoDecl
+    li  <- trm LOCAL *> cpsStoreDeclP <|> return INoDecl
     info "funDeclP" li
     
     cps <- trm DO *> cpsCmdP <* trm ENDFUN
@@ -216,6 +218,8 @@ globImpP = do
     info "globImpP" fm
 
     cm <- trmA CHANGEMODE   <|> return (ChangeMode VAR)
+    info "globImpP" cm
+
     IGlobalImp fm cm <$> typedIdentP
 
 

@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       List
+      Logger
       Model
       Parser
       ParsingLib

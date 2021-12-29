@@ -2,24 +2,24 @@
 program Euclid()
   global
 
-    fun certificate(a:int1024) returns c:bool 
-      do 
-        c init := -sign * u' * g = b /\? +sign * v' * g = a
-    endfun;
-    
     fun certificate22(a:int1024) returns c:bool 
       do 
         c init := -sign * u' * g = b /\? +sign * v' * g = a
     endfun;
 
+    fun certificate(a:int1024) returns c:bool 
+      do 
+        c init := -sign * u' * g = b /\? +sign * v' * g = a;
+    endfun;
+
+
     proc euclidDivNat(in copy const a:int1024)
       local
-        var g:int1024
+        var g':int1024
       do
         g init := a;
         numIt init := 0
     endproc;
-
 
     globval:int1024[10]
 do
