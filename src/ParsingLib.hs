@@ -11,7 +11,7 @@ module ParsingLib (
    digit,
    trm,
    trmA,
-   trmAByAttr
+   trmAByAttr,
 ) where 
 
 
@@ -34,6 +34,7 @@ import Data.Bool (Bool(False))
 import GHC.Arr (cmpArray)
 import System.IO (putStrLn)
 import Control.Monad.IO.Class (MonadIO(liftIO))
+import Logger (info, logIdent)
 
 
 newtype Parser a =
@@ -90,6 +91,7 @@ sat p = do
 trm :: Terminal -> Parser Token
 trm t = do
     (tc, a) <- item
+    -- logIdent 1 "trm" (tc, a)
 
     if tc == t
         then return (tc, a)
@@ -98,6 +100,8 @@ trm t = do
 trmA :: Terminal  -> Parser Attirbute
 trmA t = do
     (_, attr) <- trm t
+    --logIdent 1 "trmA" attr
+
     case attr of
         Just a -> return a
         _ -> empty
@@ -105,6 +109,9 @@ trmA t = do
 trmAByAttr :: Attirbute  -> Parser Attirbute
 trmAByAttr a = do
     (_, ac) <- item
+    logIdent 1  "trmAByAttr" ac
+
+
     case ac of
         Just ac ->
             if a == ac
@@ -114,12 +121,18 @@ trmAByAttr a = do
 ident :: Parser String
 ident =  P $ \(a:as) ->
     case a of
-        (LITERAL, Just (StringType i)) -> Just (i, as)
+        (LITERAL, Just (StringType i)) -> do 
+            logIdent 1  "ident" (i)
+            Just (i, as)
         _ -> Nothing
 
 
 digit :: Parser Int
 digit = P $ \(t:ts) ->
     case t of
-        (ALITERAL, Just (IntType i)) -> Just (i, ts)
+        (ALITERAL, Just (IntType i)) ->do
+            logIdent 1  "digit" i
+            Just (i, ts)
         _ -> Nothing
+
+

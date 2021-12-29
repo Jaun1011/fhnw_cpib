@@ -30,6 +30,7 @@ import System.IO (putStrLn)
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import ParsingLib (Parser(parse))
 import Debug.Trace (trace)
+import Logger (info)
 
 data IParameter
     = INoParameter
@@ -50,7 +51,6 @@ data IDecl
     | IStore Attirbute IDecl
     | IFunc String IParameter IDecl IParameter IDecl ICmd
     | IProc String IParameter IParameter IDecl ICmd
-    | ICsp
     | IType String Attirbute
     | IArrayType String IExpr Attirbute
     | IProg String IParameter IDecl ICmd
@@ -117,8 +117,10 @@ instance Show IExpr where
                     ++ ")"
 
 
-traceMonad :: (Show a, Monad m) => String ->  a -> m a
-traceMonad msg x = trace ("["++msg ++ "]\t"++ show x) (return x)
+fun = "fun certificate(a:int1024) returns c:bool do c init := -sign * u' * g = b /\\? +sign * v' * g = a /\\? u * a + v * b = g endfun "
+
+
+
 
 
 parseProgram :: [Token] -> IDecl
@@ -131,15 +133,16 @@ programP :: Parser IDecl
 programP = do
 
     name    <- trm PROGRAM *> ident
+    info "programP" name
+
     params  <- progParamsP
+    info "programP" params
+
     cps     <- trm GLOBAL *> optCps
+    info "programP" cps
+
     cmds    <- trm DO *> cpsCmdP <* trm ENDPROGRAM
-
-
-    traceMonad "programP name" name
-    traceMonad "programP params" params
-    traceMonad "programP cps" cps
-    traceMonad "programP cmds" cmds
+    info "programP" cmds
 
     return $IProg name params cps cmds
 
@@ -152,8 +155,8 @@ cpsDeclP :: Parser IDecl
 cpsDeclP = declP >>= repDecl
     where
         repDecl a = do
-                trm SEMICOLON
-                b <- declP
+                b <- trm SEMICOLON *> declP
+                info "cpsDeclP rep" b
                 repDecl $IDeclItem a b
             <|> return a
 
@@ -162,6 +165,8 @@ cpsStoreDeclP = storeDeclP >>=  rep
     where
         rep a = do
                 b <- trm SEMICOLON *> storeDeclP
+                info "cpsStoreDeclP rep" b
+
                 rep $IDeclItem a b
             <|> return a
 
@@ -174,11 +179,23 @@ declP = storeDeclP
 funDeclP :: Parser IDecl
 funDeclP = do
     i   <- trm FUN       *> ident
+    info "funDeclP" i
+
     ps  <- paramsP
+    info "funDeclP" ps
+
     sd  <- trm RETURNS   *> storeDeclP
+    info "funDeclP" sd
+
     gi  <- trm GLOBAL    *> globImpsP        <|> return INoParameter
+    info "funDeclP" gi
+    
+    
     li  <- trm LOCAL     *> cpsStoreDeclP    <|> return INoDecl
+    info "funDeclP" li
+    
     cps <- trm DO *> cpsCmdP <* trm ENDFUN
+    info "funDeclP" cps
 
     return $IFunc i ps sd gi li cps
 
@@ -186,15 +203,18 @@ funDeclP = do
 globImpsP :: Parser IParameter
 globImpsP = globImpP >>= rep
     where rep a = do
-                trm COMMA
-                b <- globImpP
-                rep $IProgParams a b
-                <|> return a
+            b <- trm COMMA *> globImpP
+            info "globImpsP" b
+
+            rep $IProgParams a b
+            <|> return a
 
 
 globImpP :: Parser IParameter
 globImpP = do
     fm <- trmA FLOWMODE     <|> return (FlowMode IN)
+    info "globImpP" fm
+
     cm <- trmA CHANGEMODE   <|> return (ChangeMode VAR)
     IGlobalImp fm cm <$> typedIdentP
 
@@ -202,6 +222,8 @@ globImpP = do
 storeDeclP :: Parser IDecl
 storeDeclP = do
     cm <- trmA CHANGEMODE <|> return (ChangeMode VAR)
+    info "storeDeclP" cm
+
     IStore cm <$> typedIdentP
 
 

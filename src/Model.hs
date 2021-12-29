@@ -84,6 +84,7 @@ data Type
     = INT32
     | INT64
     | INT1024
+    | BOOLEAN
     deriving(Show, Eq)
 
 data LogicOperator
@@ -128,7 +129,6 @@ keywords =
     ,("else", (ELSE,Nothing))
     ,("endif", (ENDIF,Nothing))
     ,("while", (WHILE,Nothing))
-    ,("bool", (BOOL,Nothing))
     ,("call", (CALL, Nothing))
     ,("length", (LENGTH, Nothing))
     ,("const", (CHANGEMODE, Just $ChangeMode CONST))
@@ -161,9 +161,12 @@ keywords =
     ,("relopr", (RELOPR, Nothing))
     ,("aliteral", (ALITERAL, Nothing))
     ,("typedef", (TYPEDEF, Nothing))
+    ,("bool", (TYPE,Just (VariableType BOOLEAN)))
     ,("int32", (TYPE, Just (VariableType INT32)))
     ,("int64", (TYPE, Just (VariableType INT64)))
     ,("int1024", (TYPE, Just (VariableType INT1024)))
+
+
     ,("unknown", (UNKNOWN, Nothing))
     ]
 
