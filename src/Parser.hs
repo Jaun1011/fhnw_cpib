@@ -117,11 +117,6 @@ instance Show IExpr where
                     ++ ")"
 
 
-fun = "fun certificate(a:int1024) returns c:bool do c init := -sign * u' * g = b /\\? +sign * v' * g = a /\\? u * a + v * b = g endfun "
-proced = "    proc euclidDivNat(in copy const a:int1024) local var g':int1024 do g init := a; g' init := b; numIt init := 0 endproc "
-
-
-
 parseProgram :: [Token] -> IDecl
 parseProgram ts = 
         case parse programP fts of
