@@ -5,6 +5,7 @@ module Parser (
   IExpr(..),
   IParameter(..),
   IDecl(..),
+  ICmd(..),
   parseProgram
 ) where
 
@@ -49,7 +50,7 @@ data IParameter
 data IDecl
     = IDeclItem IDecl IDecl
     | IStore Attirbute IDecl
-    | IFunc String IParameter IDecl IParameter IDecl ICmd
+    | IFunc String IParameter IDecl IParameter IDecl ICmd -- (name param return global local commands)
     | IProc String IParameter IParameter IDecl ICmd
     | IType String Attirbute
     | IArrayType String IExpr Attirbute

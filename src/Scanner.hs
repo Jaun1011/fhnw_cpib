@@ -46,3 +46,5 @@ firstCharLiteral c
     | isDigit c = (isNumber, ALITERAL)
     | otherwise = (const False, UNKNOWN)
     
+
+
