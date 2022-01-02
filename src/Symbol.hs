@@ -13,6 +13,13 @@ import Scanner
 import Debug.Trace
 
 type Symbol = (String, IDecl, Bool)
+type Scope = ([Symbol], [Symbol])
+
+
+{--
+containsInScope :: Scope -> String -> Bool 
+containsInScope (loc, glob) = containsSymbol (loc ++ glob)
+--}
 
 
 getSymbol :: [Symbol] -> String -> Maybe Symbol
@@ -30,17 +37,16 @@ containsSymbol ((id, _, _):ds) idc
     | otherwise = containsSymbol ds idc
 
 
-
-
 initSymbols :: [Symbol] -> Bool -> String -> [Symbol]
 initSymbols sym True id = map (`flipInit` id) sym
 initSymbols sym _ _ = sym
 
 
 flipInit :: Symbol -> String -> Symbol
-flipInit a@(id,t@(IType _ _),_) ide
+flipInit a@(id,t,_) ide
     | id == ide = (id, t, True)
     | id /= ide = a
+
 
 
 createSymbols :: IDecl -> [Symbol]

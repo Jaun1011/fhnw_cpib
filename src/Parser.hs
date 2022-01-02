@@ -70,7 +70,7 @@ data ICmd
     deriving (Show)
 
 data IExpr
-    = IAliteal Int
+    = IAliteral Int
     | ILiteral String Bool -- name , is init?
     | ILiteralArray String IExpr -- name , is init?
     | IMonadic Attirbute IExpr
@@ -86,7 +86,7 @@ instance Show IExpr where
         where
             show' :: IExpr -> Int -> String
             show' INone i           = "(INone)"
-            show' (IAliteal n) i    = "(IAliteral " ++ show n ++ ")"
+            show' (IAliteral n) i    = "(IAliteral " ++ show n ++ ")"
             show' (ILiteral n b) i  = "(ILiteral " ++ show n ++ " " ++ show b ++ ")"
             show' (ILiteralArray n b) i  = "(ILiteralArray " ++ show n ++ " " ++ show b ++ ")"
 
@@ -382,7 +382,7 @@ termMultP = factorP >>= opt
 
 factorP :: Parser IExpr
 factorP
-    = IAliteal <$> digit
+    = IAliteral <$> digit
     <|> (ident >>= opt)
 
     <|> trm LPAREN *> exprP <* trm RPAREN

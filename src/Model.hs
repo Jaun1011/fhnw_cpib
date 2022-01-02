@@ -6,6 +6,7 @@ module Model (
     RelOperator, 
     Token, 
     Terminal(..), 
+    Type(..),
     Attirbute(..), 
     transformKeyword, specialChars, 
 
@@ -70,10 +71,13 @@ data ChangeMode
     = CONST
     | VAR
     deriving (Show, Eq)
+
+
 data MechMode
     = COPY
     | REF
     deriving (Show, Eq)
+
 data FlowMode 
     = IN
     | OUT

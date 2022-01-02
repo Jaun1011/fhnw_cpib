@@ -109,7 +109,7 @@ trmA t = do
 trmAByAttr :: Attirbute  -> Parser Attirbute
 trmAByAttr a = do
     (_, ac) <- item
-    logIdent 1  "trmAByAttr" ac
+    -- logIdent 1  "trmAByAttr" ac
 
 
     case ac of
@@ -122,7 +122,7 @@ ident :: Parser String
 ident =  P $ \(a:as) ->
     case a of
         (LITERAL, Just (StringType i)) -> do 
-            logIdent 1  "ident" (i)
+            -- logIdent 1  "ident" (i)
             Just (i, as)
         _ -> Nothing
 
@@ -131,7 +131,7 @@ digit :: Parser Int
 digit = P $ \(t:ts) ->
     case t of
         (ALITERAL, Just (IntType i)) ->do
-            logIdent 1  "digit" i
+            -- logIdent 1  "digit" i
             Just (i, ts)
         _ -> Nothing
 
