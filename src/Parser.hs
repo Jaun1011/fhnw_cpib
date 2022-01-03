@@ -6,7 +6,9 @@ module Parser (
   IParameter(..),
   IDecl(..),
   ICmd(..),
-  parseProgram
+  parseProgram,
+  parseExpression,
+  parseCmds
 ) where
 
 import Model
@@ -45,7 +47,7 @@ data IParameter
 
     | ILocalImps IParameter IParameter
 
-    deriving (Show)
+    deriving (Eq,Show)
 
 data IDecl
     = IDeclItem IDecl IDecl
@@ -56,7 +58,7 @@ data IDecl
     | IArrayType String IExpr Attirbute
     | IProg String IParameter IDecl ICmd
     | INoDecl
-    deriving (Show)
+    deriving (Eq,Show)
 
 data ICmd
     = IBecomes IExpr IExpr
@@ -67,18 +69,18 @@ data ICmd
     | IDebugIn IExpr
     | IDebugOut IExpr
     | ICaller String IExpr
-    deriving (Show)
+    deriving (Eq,Show)
 
 data IExpr
     = IAliteral Int
     | ILiteral String Bool -- name , is init?
-    | ILiteralArray String IExpr -- name , is init?
+    | ILiteralArray String IExpr-- name , is init?
     | IMonadic Attirbute IExpr
     | IOpr Attirbute IExpr IExpr
     | IExprList String IExpr
     | IExprListParams IExpr IExpr
     | INone
-    deriving ()
+    deriving (Eq)
 
 instance Show IExpr where
     show n = "\n\t" ++ show' n 2 ++ "\n"
@@ -88,7 +90,7 @@ instance Show IExpr where
             show' INone i           = "(INone)"
             show' (IAliteral n) i    = "(IAliteral " ++ show n ++ ")"
             show' (ILiteral n b) i  = "(ILiteral " ++ show n ++ " " ++ show b ++ ")"
-            show' (ILiteralArray n b) i  = "(ILiteralArray " ++ show n ++ " " ++ show b ++ ")"
+            show' (ILiteralArray n b) i  = "(ILiteralArray " ++ show n ++ " " ++ show b ++  ")"
 
             show' (IExprList a b) i    = "(IExprList " ++ show a ++ show b ++  ")"
             show' (IExprListParams a b) i    =   printExprList "IExprListParams" a b  i
@@ -118,6 +120,15 @@ instance Show IExpr where
                     ++ ")"
 
 
+parseExpression :: [Token] -> IExpr
+parseExpression ts = 
+        case parse exprP fts of
+            Just (a,[]) -> a
+            Just (a, n)  -> error $"parser error" ++ show n
+            otherwise -> error "nullerror"
+      where fts = filter (\(a,b) -> a /= COMMENT ) ts
+
+
 parseProgram :: [Token] -> IDecl
 parseProgram ts = 
         case parse programP fts of
@@ -126,7 +137,13 @@ parseProgram ts =
             otherwise -> error "nullerror"
       where fts = filter (\(a,b) -> a /= COMMENT ) ts
 
-
+parseCmds :: [Token] -> ICmd
+parseCmds ts = 
+        case parse cmdP fts of
+            Just (a,[]) -> a
+            Just (a, n)  -> error $"parser error" ++ show n
+            otherwise -> error "nullerror"
+      where fts = filter (\(a,b) -> a /= COMMENT ) ts
 
 programP :: Parser IDecl
 programP = do
@@ -390,9 +407,10 @@ factorP
     where opt i = do
                 e <- exprListP
                 return $IExprList i e
+
             <|> do
                 s <- trm LEBRKT *> exprP <*trm REBRKT
-                return $ILiteralArray i s
+                return $ILiteralArray i s 
             <|> do
                 trm INIT
                 return $ILiteral i True

@@ -1,9 +1,10 @@
 module Symbol (
     Symbol,
+    isInit,
     createSymbols,
     containsSymbol,
     getSymbol,
-    initSymbols
+    initSymbols,
 ) where
 
 
@@ -13,7 +14,7 @@ import Scanner
 import Debug.Trace
 
 type Symbol = (String, IDecl, Bool)
-type Scope = ([Symbol], [Symbol])
+
 
 
 {--
@@ -43,9 +44,15 @@ initSymbols sym _ _ = sym
 
 
 flipInit :: Symbol -> String -> Symbol
-flipInit a@(id,t,_) ide
+flipInit a@(id,t, val) ide
     | id == ide = (id, t, True)
     | id /= ide = a
+
+isInit :: [Symbol] -> String -> Bool  
+isInit [] _ = False
+isInit ((idi, _,i ):ds) id 
+    | id == idi = i
+    | otherwise  = isInit ds id
 
 
 
