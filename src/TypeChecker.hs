@@ -4,9 +4,10 @@ import Scanner (scanner)
 import Parser
 import Model (Type (INT32, INT64, BOOLEAN),Terminal(IDENT, BOOL, FALSE), Attirbute (..), ChangeMode (VAR, CONST), AritmeticOperator (PLUS), RelOperator, FlowMode (IN), MechMode (REF, COPY))
 import Data.Type.Coercion (sym)
-import Symbol (Symbol, createSymbols, initSymbols, getSymbol, isInit)
+import Symbol (Symbol, createSymbols, initSymbols, getSymbol, isInit, storeId, routineId, addSymbols, removeSymbols)
 import GHC.Windows (BOOL)
 import Debug.Trace
+import Logger
 
 testcmds :: [Bool]
 testcmds = map (\(i,o) -> checkCmd sym (parseEx i) == o) testSuite
@@ -15,28 +16,28 @@ testcmds = map (\(i,o) -> checkCmd sym (parseEx i) == o) testSuite
             testSuite = [("x := less(a1,a1,a1)" , sym)
                         ,("call euklic(a1,a1,a1)" , sym)
                         ,("con init := 12" , sym)
-                        ,("con2 := 12" , sym)
-                {-,
+                       --,("con2 := 12" , sym)
+                
 
-                ("if a1 = a2 then a2 := a3 endif" , sym),
-                ("if a1 = a2 then a2 := a3 else y := a1 = a2 endif" , sym),
+                        ,("if a1 = a2 then a2 := a3 endif" , sym)
+                        ,("if a1 = a2 then a2 := a3 else y := a1 = a2 endif" , sym)
 
-                ("while a1 = a2 do a2 := a3  endwhile" , sym),
+                        ,("while a1 = a2 do a2 := a3  endwhile" , sym)
 
-                ("debugin a1 = a2" , sym),
-                ("debugout a1 = a2" , sym),
-                -- errorcase 
-                --("while a2 do a2 := a3  endwhile" , sym),
-                --("if a1 then a2 := a3 else y := a1 = a2 endif" , sym),
+                        ,("debugin a1 = a2" , sym)
+                        ,("debugout a1 = a2" , sym)
+                        -- errorcase 
+                        --("while a2 do a2 := a3  endwhile" , sym),
+                        --("if a1 then a2 := a3 else y := a1 = a2 endif" , sym),
 
 
-                ("a3 := a1 + a2" , sym),
-                ("y := a1 = a2" , sym),
-                ("a3 := a1 + arraya[0]  + arrayb[a2 + 1]" , sym),
-                ("z := x /\\? y" , sym),
+                        ,("a3 := a1 + a2" , sym)
+                        ,("y := a1 = a2" , sym)
+                        ,("a3 := a1 + arraya[0]  + arrayb[a2 + 1]" , sym)
+                        ,("z := x /\\? y" , sym)
 
-                ("init1 init := init2" , sym),
-                ("arraya := arrayb" , sym)-}
+                        ,("init1 init := init2" , sym)
+                        ,("arraya := arrayb" , sym)
                 ]
                 --]
 
@@ -46,25 +47,25 @@ testcmds = map (\(i,o) -> checkCmd sym (parseEx i) == o) testSuite
 
             sym :: [Symbol]
             sym = [
-                ("a1", IStore (ChangeMode  VAR) $IType "a1" (VariableType INT32),True),
-                ("a2", IStore (ChangeMode  VAR) $IType "a2" (VariableType INT32),True),
-                ("a3", IStore (ChangeMode  VAR) $IType "a3" (VariableType INT32),True),
+                ("global","store.a1", IStore (ChangeMode  VAR) $IType "a1" (VariableType INT32),True),
+                ("global","store.a2", IStore (ChangeMode  VAR) $IType "a2" (VariableType INT32),True),
+                ("global","store.a3", IStore (ChangeMode  VAR) $IType "a3" (VariableType INT32),True),
 
-                ("con", IStore (ChangeMode  CONST) $IType "con" (VariableType INT32),False ),
-                ("con2", IStore (ChangeMode  CONST) $IType "con" (VariableType INT32),True),
+                ("global","store.con", IStore (ChangeMode  CONST) $IType "con" (VariableType INT32),False ),
+                ("global","store.con2", IStore (ChangeMode  CONST) $IType "con" (VariableType INT32),True),
 
-                ("init1", IStore (ChangeMode  VAR) $IType "init1" (VariableType INT32),False),
-                ("init2", IStore (ChangeMode  VAR) $IType "init2" (VariableType INT32),True),
+                ("global","store.init1", IStore (ChangeMode  VAR) $IType "init1" (VariableType INT32),False),
+                ("global","store.init2", IStore (ChangeMode  VAR) $IType "init2" (VariableType INT32),True),
 
-                ("arraya", IStore (ChangeMode  VAR) $IArrayType  "arraya" (IAliteral 10) (VariableType INT32),True),
-                ("arrayb", IStore (ChangeMode  VAR) $IArrayType  "arrayb" (IAliteral 10) (VariableType INT32),True),
+                ("global","store.arraya", IStore (ChangeMode  VAR) $IArrayType  "arraya" (IAliteral 10) (VariableType INT32),True),
+                ("global","store.arrayb", IStore (ChangeMode  VAR) $IArrayType  "arrayb" (IAliteral 10) (VariableType INT32),True),
                 
-                ("x", IStore (ChangeMode  VAR) $IType "x" (VariableType BOOLEAN),True),
-                ("y", IStore (ChangeMode  VAR) $IType "y" (VariableType BOOLEAN ),True),
-                ("z", IStore (ChangeMode  VAR) $IType "y" (VariableType BOOLEAN ),True),
+                ("global","store.x", IStore (ChangeMode  VAR) $IType "x" (VariableType BOOLEAN),True),
+                ("global","store.y", IStore (ChangeMode  VAR) $IType "y" (VariableType BOOLEAN ),True),
+                ("global","store.z", IStore (ChangeMode  VAR) $IType "y" (VariableType BOOLEAN ),True),
                 
-                ("ab", IStore (ChangeMode  VAR) $IType "ab" (VariableType INT64),True),
-                ("euklic", (IProc "euklic" (IParams 
+                ("global","store.ab", IStore (ChangeMode  VAR) $IType "ab" (VariableType INT64),True),
+                ("global","routine.euklic", (IProc "euklic" (IParams 
                                             (IParams (IParam (FlowMode IN) (MechMode COPY) (ChangeMode CONST) (IType "a" (VariableType INT32)))
                                                 (IParam (FlowMode IN) (MechMode COPY) (ChangeMode CONST) (IType "b" (VariableType INT32)))) 
                                                 (IParam (FlowMode IN) (MechMode COPY) (ChangeMode CONST) (IType "c" (VariableType INT32)))) 
@@ -72,7 +73,7 @@ testcmds = map (\(i,o) -> checkCmd sym (parseEx i) == o) testSuite
                                             (IType "g" (VariableType INT32))) 
                                             ISkip)
                 , True),
-                ("less", (IFunc "less" (IParams 
+                ("global","routine.less", (IFunc "less" (IParams 
                                             (IParams 
                                                 (IParam (FlowMode IN) (MechMode REF) (ChangeMode VAR) (IType "a" (VariableType INT32))) 
                                                 (IParam (FlowMode IN) (MechMode REF) (ChangeMode VAR) (IType "b" (VariableType INT32)))) 
@@ -82,7 +83,59 @@ testcmds = map (\(i,o) -> checkCmd sym (parseEx i) == o) testSuite
                                         INoDecl 
                                         ISkip), True)]
 
-                
+testp = loadProg "../test/programs/array_sample.iml"
+    
+
+    where
+        loadProg f = do
+            file <- readFile f
+            let pt = parseProgram (scanner file)
+            let st = checkDecl [] pt
+
+
+            return st
+
+
+
+
+
+checkDecl :: [Symbol] -> IDecl ->  [Symbol] 
+checkDecl sym (IProg id _ glob cmd) = checkDecl sympass glob
+    where 
+        symglob = createSymbols glob "global"
+        sympass = checkCmd symglob cmd
+checkDecl sym (IDeclItem d1 d2) = sym2
+    where
+        sym2 = checkDecl (checkDecl sym d2) d1
+
+
+checkDecl sym (IFunc id params ret glob loc cmd) = symf
+    where
+        sym1 = addSymbols sym  id (paramsToDelc params) 
+        sym2 = addSymbols sym1 id ret   
+        sym3 = trace ( "--> symbol3 init " ++ id) addSymbols sym2 id loc  
+        
+        syml = checkCmd sym3 cmd
+        symf = trace ( "--> remove init " ++ id) removeSymbols syml id 
+
+
+checkDecl sym (IProc id params glob loc cmd) = symf
+    where 
+        sym1 = addSymbols sym  id (paramsToDelc params) 
+        sym3 = trace ( "--> symbol3 init " ++ id) addSymbols sym1 id loc  
+        
+        syml = checkCmd sym3 cmd
+        symf = trace ( "--> remove init " ++ id) removeSymbols syml id 
+
+
+checkDecl sym (IStore _ _) = sym
+checkDecl sym b = error $"no patern match " ++ show b
+
+
+
+paramsToDelc :: IParameter -> IDecl
+paramsToDelc (IParams a b) = IDeclItem (paramsToDelc a) (paramsToDelc b)
+paramsToDelc (IParam _ _ _ d) = d 
 
 
 
@@ -99,14 +152,15 @@ checkCmd sym (IIf expr cmd1 cmd2)   =
 checkCmd sym (IWhile expr cmd) = 
     case checkExprRValue sym expr False of
         (sym1, VariableType BOOLEAN ,_) -> checkCmd sym1 cmd
-        (sym1, n ,_) -> error $"[checkCmd] while expression type is <" ++ show  n ++ "> "    
+        (sym1, n ,_) -> error $"[checkCmd] while expression type is <" ++ show  n ++ ">"    
 
-checkCmd sym (IDebugIn expr)  = let (a, _, _) = checkExprRValue sym expr False in a  
+checkCmd sym (IDebugIn expr)  = checkLValue (sym, VariableType INT32 , False) expr  
 checkCmd sym (IDebugOut expr) = let (a, _, _) = checkExprRValue sym expr False in a  
 
 checkCmd sym (ICaller id expr) = 
-    case getSymbol sym id of
-        Just (id, (IProc _ params  _ _ _) , _) -> checkFunctionParams sym expr params        
+    case getSymbol sym $routineId id of
+        Just (_,id, (IProc _ params  _ _ _) , _) -> checkFunctionParams sym expr params
+        Nothing -> error $"no procedure found with name " ++ id
 
 checkCmd sym ISkip = sym 
 checkCmd _ n = error $show n 
@@ -145,33 +199,34 @@ checkOperator a b = error $"\n\t[typecheck] no IOpr" ++ show b
 checkExprRValue :: [Symbol] -> IExpr -> Bool -> ([Symbol], Attirbute, Bool)
 checkExprRValue sym (b@IOpr {}) flag = checkOperator sym b 
 checkExprRValue sym (ILiteralArray id expr) flag =
-    case getSymbol sym id of
-        Just (id,IStore _ (IArrayType _ _ decl), _) ->
+    case getSymbol sym $storeId id of
+        Just (_,id,IStore _ (IArrayType _ _ decl), _) ->
             let (sn, _, _) = checkExprRValue sym expr flag
             in (sn, decl, False)
-        _ -> error $"\n\t[typecheck] var '" ++ id ++ "' not declared"
+        _ -> error $"\n\t[typecheck] checkExprRValue var '" ++ id ++ "' not declared"
 
 checkExprRValue sym (ILiteral id init) flag =
-    case getSymbol sym id of
-            Just (id, IStore _ (IType _ decl), initialized) ->
+    case getSymbol sym $storeId id of
+            Just (env ,id, IStore _ (IType _ decl), initialized) ->
                 if initialized 
                     then (sym, decl, False) 
-                    else error $ "[typecheck] var '" ++ id ++ "' not initialized"
+                    else error $ "[typecheck] checkExprRValue var '" ++ id ++ "' not initialized in env " ++ env 
             
-            Just (id, IStore _ (IArrayType _ _ decl), initialized) -> 
+            Just (env ,id, IStore _ (IArrayType _ _ decl), initialized) -> 
                 if initialized 
                     then if not flag 
                         then (sym, decl, True) 
                         else  error $ "\n\t[typecheck] var array '" ++ id ++ "' is used in operation"
-                    else error $ "\n\t[typecheck] var array '" ++ id ++ "' not initialized" 
-
+                    else error $ "\n\t[typecheck] var array '" ++ id ++ "' not initialized in env"  ++ env
+            Just (env, id, (IType _ decl), initialized) -> (sym, decl, False) 
+            Just x -> error $show x
             _ -> error $"\n\t[typecheck] var '" ++ id ++ "' not declared:\n\t" ++  show sym
 
 checkExprRValue sym (IAliteral a) flag = (sym, VariableType INT32, False) 
 checkExprRValue sym (IMonadic attr expr) flag = checkExprRValue sym expr True
 checkExprRValue sym (IExprList id expr) flag =
-    case getSymbol sym id of
-            Just (id, (IFunc _ params (IStore _ (IType _ attr)) _ _ _) , _) -> 
+    case getSymbol sym  $routineId id of
+            Just (_,id, (IFunc _ params (IStore _ (IType _ attr)) _ _ _) , _) -> 
                 let s = checkFunctionParams sym expr params
                 in (s, attr, False)
             _ -> error $"\n\t[typecheck] function '" ++ id ++ "' does not exist"
@@ -179,7 +234,7 @@ checkExprRValue sym (IExprList id expr) flag =
 checkExprRValue sym (IExprListParams a b) flag = error $"\n\t[typecheck] function has too many parameter '" ++ show a ++ show b ++"'" 
 checkExprRValue sym a flag = error $"\n\t[typecheck] operation error "  ++ show a
 
-
+{- function parameter check -}
 checkFunctionParams :: [Symbol] -> IExpr -> IParameter -> [Symbol]
 checkFunctionParams sym (IExprListParams e1 e2)  (IParams a b) = sym2
     where
@@ -189,7 +244,7 @@ checkFunctionParams sym (IExprListParams e1 e2)  (IParams a b) = sym2
 checkFunctionParams sym expr (IParam _ _ _ (IType id attr)) = 
     let (s, attre, _) = checkExprRValue sym expr False
     in if attre == attr then s 
-        else error $"\n\t[typecheck] expr = " ++ show expr ++ " param = " ++ show attr
+        else error $"\n\t[typecheck] function parameter does not expect type = " ++ show attr ++ " param = " ++ show attre
 
 checkFunctionParams sym b n = error $"\n\t[typecheck] function has too view parameters "++ show b ++ show n
 
@@ -199,8 +254,8 @@ checkFunctionParams sym b n = error $"\n\t[typecheck] function has too view para
     checks const -}
 checkLValue :: ([Symbol], Attirbute, Bool) -> IExpr -> [Symbol]
 checkLValue (sym, attr, _) (ILiteralArray id  expr) = 
-    case getSymbol sym id of
-        Just (id, IStore _ (IArrayType _ _ attrl), ref) -> 
+    case getSymbol sym $storeId id of
+        Just (_,id, IStore _ (IArrayType _ _ attrl), ref) -> 
             if  attr == attrl 
                 then sym 
                 else error $"\n\t[typecheck] no equal type " ++ show attr ++ " not equal " ++ show attrl 
@@ -211,10 +266,10 @@ checkLValue (sym, attr, _) (ILiteralArray id  expr) =
 checkLValue (sym, attr, ref) (ILiteral id init) =
     let newSym = if isInit sym id && init
             then error $"const var '" ++show id ++ "' is  allready initialized"
-            else initSymbols sym init id
-    
-    in case getSymbol newSym id of
-            Just (id,IStore (ChangeMode cm) (IType _ decl), initialized) -> 
+            else initSymbols sym init $storeId id
+
+    in case getSymbol newSym $storeId id of
+            Just (_,id,IStore (ChangeMode cm) (IType _ decl), initialized) -> 
                 if initialized 
                     then if attr == decl 
                         then if cm == CONST && not init 
@@ -223,20 +278,18 @@ checkLValue (sym, attr, ref) (ILiteral id init) =
                         else error $ "\n\t[typecheck] lvalue var '" ++ id ++ "' is not from type " ++ show attr
                     else error $ "var '" ++ id ++ "' not initialized"
 
-            Just (id,IStore _ (IArrayType _ _ decl), initialized) -> 
+            Just (_,id,IStore _ (IArrayType _ _ decl), initialized) -> 
                 if attr == decl && ref
                     then newSym 
                     else error $ "\n\t[typecheck] l value var '" ++ id ++ "' is not from type " ++ show attr
 
-            _ -> error $"var '" ++ id ++ "' not declared"
-
+            n -> error $"var '" ++ id ++ "' not declared" ++ show n
 checkLValue a n = error "\n\t[typecheck] no valid L value "
 
 
 
-validate :: Bool -> b -> String -> Maybe b
-validate True n _ = Just n
-validate True _ n = error n 
+
+
 
 
 loadProg = do

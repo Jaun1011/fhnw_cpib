@@ -149,16 +149,16 @@ programP :: Parser IDecl
 programP = do
 
     name    <- trm PROGRAM *> ident
-    info "programP" name
+    --info "programP" name
 
     params  <- progParamsP
-    info "programP" params
+    --info "programP" params
 
     cps     <- trm GLOBAL *> optCps
-    info "programP" cps
+    --info "programP" cps
 
     cmds    <- trm DO *> cpsCmdP <* trm ENDPROGRAM
-    info "programP" cmds
+    --info "programP" cmds
 
     return $IProg name params cps cmds
 
@@ -172,7 +172,7 @@ cpsDeclP = declP >>= repDecl
     where
         repDecl a = do
                 b <- trm SEMICOLON *> declP
-                info "cpsDeclP rep" b
+                -- info "cpsDeclP rep" b
                 repDecl $IDeclItem a b
             <|> return a
 
@@ -181,7 +181,7 @@ cpsStoreDeclP = storeDeclP >>=  rep
     where
         rep a = do
                 b <- trm SEMICOLON *> storeDeclP
-                info "cpsStoreDeclP rep" b
+                -- info "cpsStoreDeclP rep" b
 
                 rep $IDeclItem a b
             <|> return a
@@ -195,22 +195,22 @@ declP = storeDeclP
 funDeclP :: Parser IDecl
 funDeclP = do
     i   <- trm FUN *> ident
-    info "funDeclP" i
+    --info "funDeclP" i
 
     ps  <- paramsP
-    info "funDeclP" ps
+    --info "funDeclP" ps
 
     sd  <- trm RETURNS *> storeDeclP
-    info "funDeclP" sd
+    --info "funDeclP" sd
 
     gi  <- trm GLOBAL *> globImpsP <|> return INoParameter
-    info "funDeclP" gi
+    --info "funDeclP" gi
     
     li  <- trm LOCAL *> cpsStoreDeclP <|> return INoDecl
-    info "funDeclP" li
+    --info "funDeclP" li
     
     cps <- trm DO *> cpsCmdP <* trm ENDFUN
-    info "funDeclP" cps
+    --info "funDeclP" cps
 
     return $IFunc i ps sd gi li cps
 
@@ -219,7 +219,7 @@ globImpsP :: Parser IParameter
 globImpsP = globImpP >>= rep
     where rep a = do
             b <- trm COMMA *> globImpP
-            info "globImpsP" b
+            --info "globImpsP" b
 
             rep $IProgParams a b
             <|> return a
@@ -228,10 +228,10 @@ globImpsP = globImpP >>= rep
 globImpP :: Parser IParameter
 globImpP = do
     fm <- trmA FLOWMODE     <|> return (FlowMode IN)
-    info "globImpP" fm
+    --info "globImpP" fm
 
     cm <- trmA CHANGEMODE   <|> return (ChangeMode VAR)
-    info "globImpP" cm
+    --info "globImpP" cm
 
     IGlobalImp fm cm <$> typedIdentP
 
@@ -239,7 +239,7 @@ globImpP = do
 storeDeclP :: Parser IDecl
 storeDeclP = do
     cm <- trmA CHANGEMODE <|> return (ChangeMode VAR)
-    info "storeDeclP" cm
+    --info "storeDeclP" cm
 
     IStore cm <$> typedIdentP
 

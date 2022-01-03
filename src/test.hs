@@ -1,4 +1,12 @@
-IProg "Euclid" INoParameter (IDeclItem (IDeclItem (IDeclItem (IDeclItem (IDeclItem (IFunc "certificate" (IParam (FlowMode IN) (MechMode REF) (ChangeMode VAR) (IType "a" (VariableType INT1024))) (IStore (ChangeMode VAR) (IType "c" (VariableType BOOLEAN))) INoParameter INoDecl (IBecomes 
+IProg "Euclid" INoParameter 
+
+
+
+(IDeclItem
+	(IDeclItem 
+		(IDeclItem 
+			(IDeclItem 
+				(IDeclItem (IFunc "certificate" (IParams (IParams (IParam (FlowMode IN) (MechMode REF) (ChangeMode VAR) (IType "a" (VariableType INT32))) (IParam (FlowMode IN) (MechMode REF) (ChangeMode VAR) (IType "b" (VariableType INT32)))) (IParam (FlowMode IN) (MechMode REF) (ChangeMode VAR) (IType "x" (VariableType INT32)))) (IStore (ChangeMode VAR) (IType "c" (VariableType BOOLEAN))) INoParameter INoDecl (IBecomes 
 	(ILiteral "c" True)
  
 	(IOpr
@@ -29,8 +37,8 @@ IProg "Euclid" INoParameter (IDeclItem (IDeclItem (IDeclItem (IDeclItem (IDeclIt
 				AritmeticOperator MULTI)
 			RelOperator EQUAL)
 		LogicOperator AND)
-)) (IFunc "less" (IParams (IParams (IParam (FlowMode IN) (MechMode REF) (ChangeMode VAR) (IType "a" (VariableType INT1024))) (IParam (FlowMode IN) (MechMode REF) (ChangeMode VAR) (IType "b" (VariableType INT1024)))) (IParam (FlowMode IN) (MechMode REF) (ChangeMode VAR) (IType "c" (VariableType INT1024)))) (IStore (ChangeMode VAR) (IType "x" (VariableType BOOLEAN))) INoParameter INoDecl (IBecomes 
-	(ILiteral "c" True)
+)) (IFunc "less" (IParams (IParams (IParam (FlowMode IN) (MechMode REF) (ChangeMode VAR) (IType "a" (VariableType INT32))) (IParam (FlowMode IN) (MechMode REF) (ChangeMode VAR) (IType "b" (VariableType INT32)))) (IParam (FlowMode IN) (MechMode REF) (ChangeMode VAR) (IType "c" (VariableType INT32)))) (IStore (ChangeMode VAR) (IType "x" (VariableType BOOLEAN))) INoParameter INoDecl (IBecomes 
+	(ILiteral "x" True)
  
 	(IOpr
 		(ILiteral "c" False)
@@ -39,7 +47,7 @@ IProg "Euclid" INoParameter (IDeclItem (IDeclItem (IDeclItem (IDeclItem (IDeclIt
 			(ILiteral "b" False)
 			AritmeticOperator PLUS)
 		RelOperator LESS)
-))) (IProc "euclidDivNat" (IParams (IParams (IParam (FlowMode IN) (MechMode COPY) (ChangeMode CONST) (IType "a" (VariableType INT1024))) (IParam (FlowMode IN) (MechMode COPY) (ChangeMode CONST) (IType "b" (VariableType INT1024)))) (IParam (FlowMode IN) (MechMode COPY) (ChangeMode CONST) (IType "c" (VariableType INT1024)))) INoParameter (IStore (ChangeMode VAR) (IType "g" (VariableType INT1024))) (ICmds (ICmds (ICmds (IBecomes 
+))) (IProc "euclidDivNat" (IParams (IParams (IParam (FlowMode IN) (MechMode COPY) (ChangeMode CONST) (IType "a" (VariableType INT32))) (IParam (FlowMode IN) (MechMode COPY) (ChangeMode CONST) (IType "b" (VariableType INT32)))) (IParam (FlowMode IN) (MechMode COPY) (ChangeMode CONST) (IType "c" (VariableType INT32)))) INoParameter (IStore (ChangeMode VAR) (IType "g" (VariableType INT32))) (ICmds (ICmds (ICmds (IBecomes 
 	(ILiteral "g" True)
  
 	(ILiteral "a" False)
@@ -77,17 +85,17 @@ IProg "Euclid" INoParameter (IDeclItem (IDeclItem (IDeclItem (IDeclItem (IDeclIt
 		AritmeticOperator MINUS)
 ))))) (IStore (ChangeMode VAR) (IArrayType "globval" 
 	(IAliteral 10)
- (VariableType INT1024)))) (IStore (ChangeMode VAR) (IType "a" (VariableType INT32)))) (IStore (ChangeMode VAR) (IType "n" (VariableType BOOLEAN)))) (ICmds (ICmds (IBecomes 
-	(ILiteral "a" True)
+ (VariableType INT1024)))) (IStore (ChangeMode VAR) (IType "t" (VariableType INT32)))) (IStore (ChangeMode VAR) (IType "n" (VariableType BOOLEAN)))) (ICmds (ICmds (IBecomes 
+	(ILiteral "t" True)
  
 	(IAliteral 10)
 ) (IBecomes 
-	(ILiteral "n" False)
+	(ILiteral "n" True)
  
 	(IExprList "less"
 	(IExprListParams
 		(IExprListParams
-			(ILiteral "a" False)
+			(ILiteral "t" False)
 			(IOpr
 				(IOpr
 					(IAliteral 10)
@@ -109,7 +117,7 @@ IProg "Euclid" INoParameter (IDeclItem (IDeclItem (IDeclItem (IDeclItem (IDeclIt
 )) (ICaller "euclidDivNat" 
 	(IExprListParams
 		(IExprListParams
-			(ILiteral "a" False)
+			(ILiteral "t" False)
 			(IAliteral 10))
 		(IAliteral 30))
 ))
