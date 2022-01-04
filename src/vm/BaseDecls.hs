@@ -5,10 +5,10 @@
 -- January 2021
 -- March 2021
 
-module BaseDecls where
+module Vm.BaseDecls where
 
-import Locations(Loc(..), Located)
-import CheckedArithmetic(Int32(..), Int64(..), Int1024(..))
+import Vm.Locations(Loc(..), Located)
+import Vm.CheckedArithmetic(Int32(..), Int64(..), Int1024(..))
 
 import Data.Maybe(fromMaybe)
 

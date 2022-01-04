@@ -32,7 +32,7 @@ import Data.Bool (Bool(False))
 import GHC.Arr (cmpArray)
 import System.IO (putStrLn)
 import Control.Monad.IO.Class (MonadIO(liftIO))
-import Logger (info, logIdent)
+import Utils.Logger (info, logIdent)
 
 
 newtype Parser a =

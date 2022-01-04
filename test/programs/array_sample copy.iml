@@ -31,7 +31,16 @@ program Euclid()
                 
         endproc;
 
-        globval:int1024[10]
+        globval:int1024[10];
+        a:int1024
     do
-        call test(globval, 10)
+        a init = 10;
+        globval init := []
+        call test(globval, 10 + a)
+        if g = 1 * 2 then
+            g := 1
+        else
+            g := 2 *2
+        endif;
+
 endprogram

@@ -7,7 +7,7 @@ import Data.Type.Coercion (sym)
 import Symbol (Symbol, createSymbols, initSymbols, getSymbol, isInit, storeId, routineId, addSymbols, removeSymbols)
 import GHC.Windows (BOOL)
 import Debug.Trace
-import Logger
+import Utils.Logger
 
 testcmds :: [Bool]
 testcmds = map (\(i,o) -> checkCmd sym (parseEx i) == o) testSuite
@@ -97,12 +97,10 @@ testp = loadProg "../test/programs/array_sample.iml"
 
 
 
-
-
 checkDecl :: [Symbol] -> IDecl ->  [Symbol] 
 checkDecl sym (IProg id _ glob cmd) = checkDecl sympass glob
     where 
-        symglob = createSymbols glob "global"
+        symglob = createSymbols glob id
         sympass = checkCmd symglob cmd
 checkDecl sym (IDeclItem d1 d2) = sym2
     where
@@ -113,19 +111,19 @@ checkDecl sym (IFunc id params ret glob loc cmd) = symf
     where
         sym1 = addSymbols sym  id (paramsToDelc params) 
         sym2 = addSymbols sym1 id ret   
-        sym3 = trace ( "--> symbol3 init " ++ id) addSymbols sym2 id loc  
+        sym3 = addSymbols sym2 id loc  
         
-        syml = checkCmd sym3 cmd
-        symf = trace ( "--> remove init " ++ id) removeSymbols syml id 
+        symp = checkCmd sym3 cmd
+        symf = removeSymbols symp id 
 
 
 checkDecl sym (IProc id params glob loc cmd) = symf
     where 
         sym1 = addSymbols sym  id (paramsToDelc params) 
-        sym3 = trace ( "--> symbol3 init " ++ id) addSymbols sym1 id loc  
+        sym3 =addSymbols sym1 id loc  
         
-        syml = checkCmd sym3 cmd
-        symf = trace ( "--> remove init " ++ id) removeSymbols syml id 
+        symp = checkCmd sym3 cmd
+        symf = removeSymbols symp id 
 
 
 checkDecl sym (IStore _ _) = sym
@@ -285,12 +283,6 @@ checkLValue (sym, attr, ref) (ILiteral id init) =
 
             n -> error $"var '" ++ id ++ "' not declared" ++ show n
 checkLValue a n = error "\n\t[typecheck] no valid L value "
-
-
-
-
-
-
 
 loadProg = do
     file <- readFile "../test/programs/array_sample.iml"

@@ -1,9 +1,13 @@
-module VmData where
+-- BasicIML V01
+-- Edgar F.A. Lederer, FHNW
+-- December 2020
 
-import BaseDecls
-import CheckedArithmetic
-import Locations
-import Utilities(flushRight)
+module Vm.VmData where
+
+import Vm.BaseDecls
+import Vm.CheckedArithmetic
+import Vm.Locations
+import Vm.Utilities(flushRight)
 
 import Data.Array
 

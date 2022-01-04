@@ -6,7 +6,7 @@ module Scanner
 import GHC.Unicode (isAlpha, isDigit)
 
 import Model (Token,Terminal(..), Attirbute(..),specialChars, transformKeyword )
-import List (split)
+import Utils.List (split)
 
 
 scanner :: String -> [Token]

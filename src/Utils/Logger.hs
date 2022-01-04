@@ -1,4 +1,4 @@
-module Logger (
+module Utils.Logger (
     info,
     logIdent,
 ) where

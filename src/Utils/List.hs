@@ -1,4 +1,4 @@
-module List
+module Utils.List
     (find, split, remove) 
 where
 

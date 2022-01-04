@@ -4,7 +4,7 @@
 -- December 2020
 -- January 2021
 
-module CheckedArithmetic
+module Vm.CheckedArithmetic
   (
     euclidDM, euclidQR, divE, modE, divF, modF, divT, modT,
     ArithError(DivisionByZero, Overflow),

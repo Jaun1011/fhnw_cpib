@@ -1,5 +1,9 @@
+-- IML, HS-2012, Ruedi
+-- Edgar F.A. Lederer, FHNW
+-- December 2020
+-- March 2021
 
-module Utilities where
+module Vm.Utilities where
 
 mapFst :: (a -> b) -> (a, c) -> (b, c)
 mapFst f (x, y) = (f x, y)

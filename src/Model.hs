@@ -17,7 +17,7 @@ import Prelude (Show, Maybe (Just, Nothing), String, Int, snd, fst, ($), otherwi
 import Data.Maybe
 --import Language.Haskell.TH.Syntax (Callconv)
 import Data.Int (Int32, Int64)
-import List (find, split)
+import Utils.List (find, split)
 
 data Terminal
     = IDENT

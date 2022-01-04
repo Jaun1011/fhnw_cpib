@@ -1,15 +1,21 @@
-module VirtualMachineIOStudents
+-- BasicIML V01
+-- Edgar F.A. Lederer, FHNW and Uni Basel, 2015
+-- January 2020
+-- December 2020
+-- December 2021
+
+module Vm.VirtualMachineIOStudents
   (VmType(..), VmValue(..), Instruction(..),
    CodeAddress, StoreAddress, Code, VMProgram(VMProgram),
    execProgram, debugProgram)
 where
 
-import BaseDecls
-import CheckedArithmetic
-import ErrorHandlingGeneric
-import Locations
+import Vm.BaseDecls
+import Vm.CheckedArithmetic
+import Vm.ErrorHandlingGeneric
+import Vm.Locations
 --import Scanner(readBool, readInteger)
-import VmData
+import Vm.VmData
 
 import Data.Array
 import qualified Data.Char(digitToInt, isDigit)

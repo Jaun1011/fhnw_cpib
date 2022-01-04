@@ -33,7 +33,7 @@ import System.IO (putStrLn)
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import ParsingLib (Parser(parse))
 import Debug.Trace (trace)
-import Logger (info)
+import Utils.Logger (info)
 
 data IParameter
     = INoParameter

@@ -1,10 +1,17 @@
-module Locations
+-- BasicIML V03
+-- HS-2012, Ruedi
+-- Edgar F.A. Lederer, FHNW
+-- October 2020
+-- November 2020
+-- January 2021
+
+module Vm.Locations
   (BaseLocation(..), Loc(..), Location(Loc), Located,
    ErrorMsg, Checked,
    RC, rc2loc, spanRC, getLoc, getPhr, showPhrAtLoc)
 where
 
-import ErrorHandlingGeneric(ErrorMsgGen, CheckedGen)
+import Vm.ErrorHandlingGeneric(ErrorMsgGen, CheckedGen)
 
 import Data.Semigroup
 import Data.Monoid
