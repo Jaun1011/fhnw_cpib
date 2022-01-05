@@ -22,10 +22,12 @@ Sub Int32 (6:16-22)
 
 Der Parameter Int32 sagt, dass der Subtraktionsbefehl für den Datentyp
 int32 verwendet werden soll.
+
 Der Parameter (6:16-22) sagt, dass der entsprechende Subtraktionsausdruck
 in Zeile 6, Spalten 16 bis 22 im Quelltext zu finden ist.
 Bei einem Überlauf kann eine entsprechende Fehlermeldung zur Laufzeit
 angezeigt werden.
+
 (Überläufe werden in meiner VM in Haskell erkannt und mit einer
 entsprechenden Fehlermeldung quittiert, in meiner VM in Java aber nicht.)
 

@@ -7,5 +7,6 @@ do
   debugin x init;
   debugin y init;
   debugin z init;
+  
   debugout x < y /\? y < z
 endprogram

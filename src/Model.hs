@@ -3,7 +3,7 @@
 
 module Model (
     LogicOperator(..), 
-    RelOperator, 
+    RelOperator(..), 
     Token, 
     Terminal(..), 
     Type(..),

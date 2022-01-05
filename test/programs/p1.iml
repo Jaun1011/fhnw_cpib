@@ -1,0 +1,28 @@
+
+program Euclid()
+
+global
+    x:int32;
+    end:int32;
+    t:int32
+do
+  debugin end init;
+
+  x init := 0;
+  t init := 0;
+  if 0 < end  then
+    while x < end do
+        debugout x;
+
+        if x = 1 then
+          debugout 111111
+        else 
+          debugout 222222
+
+        endif;
+
+        x := x + 1
+    endwhile
+  endif
+
+endprogram

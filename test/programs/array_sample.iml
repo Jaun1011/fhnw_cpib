@@ -14,12 +14,10 @@ program Euclid()
     endfun;
 
     proc euclidDivNat(in copy const a:int32, in copy var b:int32, in copy const c:int32)
-      local
-        var g:int32
       do
         g init := a;
                 
-        if g = 0 then
+        if g > 10 then
           g := t
         else
           g := 2 *2
@@ -37,5 +35,6 @@ program Euclid()
 do
   t init := 10;
   n init := less(t, 10 + 5 +1 , 30 - 4 - 5 - 6);
-  call euclidDivNat(t, 10 , 30)
+  call euclidDivNat(t, 10 , 30);
+  debugin t
 endprogram

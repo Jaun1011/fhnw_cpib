@@ -8,7 +8,8 @@ module Parser (
   ICmd(..),
   parseProgram,
   parseExpression,
-  parseCmds
+  parseCmds,
+  paramsToDelc
 ) where
 
 import Model
@@ -118,6 +119,11 @@ instance Show IExpr where
                     ++ replicate i '\t'
                     ++ show attr
                     ++ ")"
+
+paramsToDelc :: IParameter -> IDecl
+paramsToDelc (IParams a b) = IDeclItem (paramsToDelc a) (paramsToDelc b)
+paramsToDelc (IParam _ _ _ d) = d 
+
 
 
 parseExpression :: [Token] -> IExpr
@@ -372,7 +378,7 @@ termRelP = termAddP >>= opt
         opt a = do
             attr <- trmA RELOPR
             b <- termAddP
-            return $IOpr attr b a
+            return $IOpr attr a b
             <|> return a
 
 

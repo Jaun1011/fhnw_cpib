@@ -9,7 +9,7 @@ import Vm.CheckedArithmetic
 import Vm.Locations
 import Vm.Utilities(flushRight)
 
-import Data.Array
+import Data.Array ( Array, assocs, bounds )
 
 type StoreAddress = Int
 type CodeAddress = Int

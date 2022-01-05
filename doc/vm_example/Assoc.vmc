@@ -21,13 +21,21 @@ Assoc;
 19 : Deref;
 20 : Sub Int32 (7:12-22);
 21 : Output int32 "x - x - x";
+
 22 : LoadIm Int 0;
 23 : Deref;
+
 24 : LoadIm Int 0;
 25 : Deref;
+
 26 : Sub Int32 (8:12-16);
+
 27 : LoadIm Int 0;
 28 : Deref;
+
 29 : Sub Int32 (8:12-20);
+
 30 : Output int32 "x - x - x";
+
+
 31 : Stop;

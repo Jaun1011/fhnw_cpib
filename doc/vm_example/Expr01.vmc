@@ -33,11 +33,15 @@ Expr01;
 31 : Store;
 32 : LoadIm Int 1;
 33 : Deref;
+
 34 : Output int32 "x1";
+
 35 : LoadIm Int 1;
 36 : Deref;
+
 37 : LoadIm Int 2;
 38 : Deref;
 39 : Eq Int32;
+
 40 : Output bool "x1 = x2";
 41 : Stop;

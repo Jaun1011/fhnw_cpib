@@ -333,26 +333,20 @@ execInstr (Ge Int1024VmTy) (pc, fp, Int1024VmVal y : Int1024VmVal x : stack) =
 
 execInstr (Convert fromTy toTy loc) (pc, fp, vmVal : stack) =
   case (fromTy, vmVal, toTy) of
-    (Int32VmTy, Int32VmVal a, Int64VmTy) ->
-      return2 (pc + 1, fp, Int64VmVal (fromInt32toInt64 a) : stack)
-    (Int32VmTy, Int32VmVal a, Int1024VmTy) ->
-      return2 (pc + 1, fp, Int1024VmVal (fromInt32toInt1024 a) : stack)
-    (Int64VmTy, Int64VmVal a, Int1024VmTy) ->
-      return2 (pc + 1, fp, Int1024VmVal (fromInt64toInt1024 a) : stack)
-    (Int64VmTy, Int64VmVal a, Int32VmTy) ->
-      case fromInt64toInt32 a of
-        Left Overflow -> return
-          (Left (ErrorMsg ([loc], "convert: overflow from 64 to 32 bit")))
-        Right result -> return2 (pc + 1, fp, Int32VmVal result : stack)
+    (Int32VmTy, Int32VmVal a, Int64VmTy)    -> return2 (pc + 1, fp, Int64VmVal (fromInt32toInt64 a) : stack)
+    (Int32VmTy, Int32VmVal a, Int1024VmTy)  -> return2 (pc + 1, fp, Int1024VmVal (fromInt32toInt1024 a) : stack)
+    (Int64VmTy, Int64VmVal a, Int1024VmTy)  -> return2 (pc + 1, fp, Int1024VmVal (fromInt64toInt1024 a) : stack)
+    (Int64VmTy, Int64VmVal a, Int32VmTy)    -> 
+        case fromInt64toInt32 a of
+            Left Overflow -> return (Left (ErrorMsg ([loc], "convert: overflow from 64 to 32 bit")))
+            Right result  -> return2 (pc + 1, fp, Int32VmVal result : stack)
     (Int1024VmTy, Int1024VmVal a, Int32VmTy) ->
       case fromInt1024toInt32 a of
-        Left Overflow -> return
-          (Left (ErrorMsg ([loc], "convert: overflow from 1024 to 32 bit")))
+        Left Overflow -> return (Left (ErrorMsg ([loc], "convert: overflow from 1024 to 32 bit")))
         Right result -> return2 (pc + 1, fp, Int32VmVal result : stack)
     (Int1024VmTy, Int1024VmVal a, Int64VmTy) ->
       case fromInt1024toInt64 a of
-        Left Overflow -> return
-          (Left (ErrorMsg ([loc], "convert: overflow from 1024 to 64 bit")))
+        Left Overflow -> return (Left (ErrorMsg ([loc], "convert: overflow from 1024 to 64 bit")))
         Right result -> return2 (pc + 1, fp, Int64VmVal result : stack)
 
 execInstr Stop (_, fp, stack) =
