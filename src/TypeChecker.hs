@@ -163,7 +163,7 @@ checkDecl sym (IFunc id params ret glob loc cmd) = symf
 checkDecl sym (IProc id params glob loc cmd) = symf
     where 
         sym1 = addSymbols sym  id (paramsToDelc params) 
-        sym3 =addSymbols sym1 id loc  
+        sym3 = addSymbols sym1 id loc  
         
         symp = checkCmd sym3 cmd
         symf = removeSymbols symp id 

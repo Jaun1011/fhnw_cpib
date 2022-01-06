@@ -13,7 +13,8 @@ module Symbol (
     initSymbols,
     getType,
     getAddress,
-    setAddressById
+    setAddressById,
+    countStore
 ) where
 
 
@@ -32,6 +33,11 @@ type Address = Int
 
 type Symbol = (Env, Id, IDecl, Ref, Address)
 
+countStore :: [Symbol] -> Int
+countStore [] = 0
+countStore ((_,_,(IStore {}),_,_):sm) = 1 +   countStore sm
+countStore (s:sm) = countStore sm
+
 getType :: Symbol -> Maybe Attirbute
 getType (_, _, IType _ attr, _, _) = Just attr
 getType (_, _, IArrayType _ _ attr, _, _) = Just attr
@@ -42,6 +48,10 @@ getAddress (_, _, _, _, addr) =addr
 
 getId :: Symbol -> Id
 getId (_, id, _, _, _) = id
+
+
+getDecl :: Symbol -> IDecl 
+getDecl (_, _, decl, _, _) = decl
 
 
 setAddressById :: [Symbol] -> (Address, Id) -> [Symbol]
@@ -133,7 +143,7 @@ addSymbols sym env a = sortSymbols $createSymbols' a sym
 
         symbol id a sym
             | not (containsSymbol sym id) = (env, id, a , False, -1)
-            | containsSymbol sym id = error $ "[symbol] duplicated name '" ++ id ++ "'" ++ show sym
+            | containsSymbol sym id = error $ "\n\n[symbol] duplicated name '" ++ id ++ "'\n\n" ++ show sym
 
 
         getId :: IDecl -> String

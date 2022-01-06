@@ -2,9 +2,20 @@
 program Euclid()
 
 global
+
+
+    
     x:int32;
     end:int32;
-    t:int32
+    t:int32;
+
+
+    fun f(v:int32) returns y:int32
+      do
+        y init := v + 17
+    endfun
+
+
 do
   debugin end init;
 
