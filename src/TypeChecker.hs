@@ -113,16 +113,8 @@ testSym = trace "sym" (setAddressById sym (111111111111, "routine.euklic"))
                                             INoParameter (IStore (ChangeMode VAR) 
                                             (IType "g" (VariableType INT32))) 
                                             ISkip)
-                , True, 1),
-                ("global","routine.less", (IFunc "less" (IParams 
-                                            (IParams 
-                                                (IParam (FlowMode IN) (MechMode REF) (ChangeMode VAR) (IType "a" (VariableType INT32))) 
-                                                (IParam (FlowMode IN) (MechMode REF) (ChangeMode VAR) (IType "b" (VariableType INT32)))) 
-                                            (IParam (FlowMode IN) (MechMode REF) (ChangeMode VAR) (IType "c" (VariableType INT32)))) 
-                                        (IStore (ChangeMode VAR) (IType "x" (VariableType BOOLEAN))) 
-                                        INoParameter 
-                                        INoDecl 
-                                        ISkip), True, 1)]
+                , True, 1)                        
+                ]
 
 testp = loadProg "../test/programs/array_sample.iml"
     
@@ -316,7 +308,7 @@ checkLValue (sym, attr, ref) (ILiteral id init) =
                         then if cm == CONST && not init 
                             then error $"\n\t[typecheck] const var '" ++ show id ++ "' can not be changed after initialization" 
                             else newSym 
-                        else error $ "\n\t[typecheck] lvalue var '" ++ id ++ "' is not from type " ++ show attr
+                        else error $ "\n\t[typecheck] l value var '" ++ id ++ "' is not from type " ++ show attr
                     else error $ "var '" ++ id ++ "' not initialized"
 
             Just (_,id,IStore _ (IArrayType _ _ decl), initialized, _) -> 
