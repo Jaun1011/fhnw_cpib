@@ -117,20 +117,17 @@ testSym = trace "sym" (setAddressById sym (111111111111, "routine.euklic"))
                 ]
 
 testp = loadProg "../test/programs/array_sample.iml"
-    
-
     where
         loadProg f = do
             file <- readFile f
             let pt = parseProgram (scanner file)
             let st = checkDecl [] pt
-
-
+            
             return st
 
 
-checkProgram :: IDecl -> [Symbol]
-checkProgram = checkDecl []
+checkProgram :: IDecl -> ([Symbol],IDecl)
+checkProgram dec = (checkDecl [] dec, dec)
 
 checkDecl :: [Symbol] -> IDecl ->  [Symbol] 
 checkDecl sym (IProg id _ glob cmd) = checkDecl sympass glob
@@ -240,17 +237,10 @@ checkExprRValue sym (ILiteralArray id expr) flag =
 
 checkExprRValue sym (ILiteral id init) flag =
     case getSymbol sym $storeId id of
-            Just (env ,id, IStore _ (IType _ decl), initialized, _) ->
-                if initialized 
-                    then (sym, decl, False) 
-                    else error $ "[typecheck] checkExprRValue var '" ++ id ++ "' not initialized in env " ++ env 
-            
-            Just (env ,id, IStore _ (IArrayType _ _ decl), initialized, _) -> 
-                if initialized 
-                    then if not flag 
-                        then (sym, decl, True) 
-                        else  error $ "\n\t[typecheck] var array '" ++ id ++ "' is used in operation"
-                    else error $ "\n\t[typecheck] var array '" ++ id ++ "' not initialized in env"  ++ env
+            Just (env ,id, IStore _ (IType _ decl), True , _)           -> (sym, decl, False) 
+            Just (env ,id, IStore _ (IType _ decl), False  , _)         -> error $ "[typecheck] checkExprRValue var '" ++ id ++ "' not initialized in env " ++ env 
+            Just (env ,id, IStore _ (IArrayType _ _ decl), True, _)     -> if not flag  then (sym, decl, True)  else  error $ "\n\t[typecheck] var array '" ++ id ++ "' is used in operation"
+            Just (env ,id, IStore _ (IArrayType _ _ decl), False , _)   -> error $ "\n\t[typecheck] var array '" ++ id ++ "' not initialized in env"  ++ env
             Just (env, id, (IType _ decl), initialized, _) -> (sym, decl, False) 
             Just x -> error $show x
             _ -> error $"\n\t[typecheck] var '" ++ id ++ "' not declared:\n\t" ++  show sym
@@ -302,16 +292,14 @@ checkLValue (sym, attr, ref) (ILiteral id init) =
             else initSymbols sym init $storeId id
 
     in case getSymbol newSym $storeId id of
-            Just (_,id,IStore (ChangeMode cm) (IType _ decl), initialized, _) -> 
-                if initialized 
-                    then if attr == decl 
+            Just (_,id,IStore (ChangeMode cm) (IType _ decl), True, _) ->           
+                if attr == decl 
                         then if cm == CONST && not init 
                             then error $"\n\t[typecheck] const var '" ++ show id ++ "' can not be changed after initialization" 
                             else newSym 
                         else error $ "\n\t[typecheck] l value var '" ++ id ++ "' is not from type " ++ show attr
-                    else error $ "var '" ++ id ++ "' not initialized"
-
-            Just (_,id,IStore _ (IArrayType _ _ decl), initialized, _) -> 
+            Just (_,id,IStore (ChangeMode cm) (IType _ decl), False , _) -> error $ "var '" ++ id ++ "' not initialized"
+            Just (_,id,IStore _ (IArrayType _ _ decl), _, _) -> 
                 if attr == decl && ref
                     then newSym 
                     else error $ "\n\t[typecheck] l value var '" ++ id ++ "' is not from type " ++ show attr

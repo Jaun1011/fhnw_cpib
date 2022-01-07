@@ -1,0 +1,45 @@
+
+program Euclid()
+  global
+
+    fun certificate(a:int32,b:int32,x:int32) returns c:bool 
+      do 
+        c init :=  a *  b = x
+    endfun;
+
+
+    fun less(a:int32, b:int32, c:int32) returns x:bool 
+      local
+        var i:int32
+      do 
+        x init := a + b < c
+    endfun;
+
+    proc euclidDivNat(in copy const a:int32, in copy var b:int32, in copy const c:int32)
+      do
+        g init := a;
+                
+        if g > 10 then
+          g := t
+        else
+          g := 2 *2
+        endif;
+
+        while g > 2 do
+          g := g - 1
+        endwhile
+    endproc;
+
+
+    globval:int32[10];
+
+    t:int32;
+    g:int32;
+    n:bool
+do
+
+  debugin t init;
+  n init := less(t, 10 + 5 +1 , 30 - 4 - 5 - 6);
+  globval[t] := 19;
+  call euclidDivNat(t, 10 , globval[t])
+endprogram

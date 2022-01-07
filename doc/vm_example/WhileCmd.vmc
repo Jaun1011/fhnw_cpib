@@ -8,6 +8,7 @@ WhileCmd;
  6 : LoadIm Int32 0;
  7 : Gt Int32;
  8 : CondJump 16;
+
  9 : LoadIm Int 0;
 10 : LoadIm Int 0;
 11 : Deref;

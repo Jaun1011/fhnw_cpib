@@ -88,11 +88,11 @@ IProg "Euclid" INoParameter (IDeclItem (IDeclItem (IDeclItem (IDeclItem (IDeclIt
                 AritmeticOperator MINUS))
 )
 )) (ICaller "euclidDivNat" 
-	(IExprListParams
-		(IExprListParams
-			(ILiteral "t" False)
-			(IAliteral 10))
-		(ILiteralArray "globval" 
-	(ILiteral "t" False)
-))
+        (IExprListParams
+            (IExprListParams
+                (ILiteral "t" False)
+                (IAliteral 10))
+            (ILiteralArray "globval" 
+            (ILiteral "t" False)
+        ))
 ))
