@@ -1,20 +1,13 @@
 AllocBlock 1
 LoadIm Int 0
-LoadIm Int1024 1
+LoadIm Int1024 5
 Store
 LoadIm Int 0
+LoadIm Int 0
 Deref
-LoadIm Int1024 1
-Gt Int1024
-CondJump 11
-Output int1024 "array is bigger than maxsize = 1"
-Stop
-AllocBlock 1
-AllocBlock 1
-LoadIm Int 2
-LoadIm Int1024 10
+LoadIm Int1024 5
 Store
-LoadIm Int 2
+LoadIm Int 0
 Deref
 Output int1024 ""
 Stop

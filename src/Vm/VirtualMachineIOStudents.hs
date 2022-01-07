@@ -19,6 +19,7 @@ import Vm.VmData
 
 import Data.Array
 import qualified Data.Char(digitToInt, isDigit)
+import Debug.Trace (trace)
 
 -- version for students without using Scanner
 readBool :: String -> Maybe Bool
@@ -61,7 +62,8 @@ unspecVmVal :: VmValue
 unspecVmVal = IntVmVal 0
 
 readS :: Stack -> StoreAddress -> VmValue
-readS stack addr = stack !! ((length stack - 1) - addr)
+--readS stack addr = stack !! ((length stack - 1) - addr)
+readS stack addr = trace ( "stack = " ++ (show $reverse stack)) stack !! ((length stack - 1) - addr)
 
 updateS :: Stack -> (StoreAddress, VmValue) -> Stack
 updateS stack (addr, val) = stack'
@@ -336,23 +338,21 @@ execInstr (Convert fromTy toTy loc) (pc, fp, vmVal : stack) =
     (Int32VmTy, Int32VmVal a, Int64VmTy)    -> return2 (pc + 1, fp, Int64VmVal (fromInt32toInt64 a) : stack)
     (Int32VmTy, Int32VmVal a, Int1024VmTy)  -> return2 (pc + 1, fp, Int1024VmVal (fromInt32toInt1024 a) : stack)
     (Int64VmTy, Int64VmVal a, Int1024VmTy)  -> return2 (pc + 1, fp, Int1024VmVal (fromInt64toInt1024 a) : stack)
-    (Int64VmTy, Int64VmVal a, Int32VmTy)    -> 
-        case fromInt64toInt32 a of
+    (Int64VmTy, Int64VmVal a, Int32VmTy)    -> case fromInt64toInt32 a of
             Left Overflow -> return (Left (ErrorMsg ([loc], "convert: overflow from 64 to 32 bit")))
             Right result  -> return2 (pc + 1, fp, Int32VmVal result : stack)
-    (Int1024VmTy, Int1024VmVal a, Int32VmTy) ->
-      case fromInt1024toInt32 a of
+    (Int1024VmTy, Int1024VmVal a, Int32VmTy) -> case fromInt1024toInt32 a of
         Left Overflow -> return (Left (ErrorMsg ([loc], "convert: overflow from 1024 to 32 bit")))
         Right result -> return2 (pc + 1, fp, Int32VmVal result : stack)
-    (Int1024VmTy, Int1024VmVal a, Int64VmTy) ->
-      case fromInt1024toInt64 a of
+    (Int1024VmTy, Int1024VmVal a, Int64VmTy) -> case fromInt1024toInt64 a of
         Left Overflow -> return (Left (ErrorMsg ([loc], "convert: overflow from 1024 to 64 bit")))
         Right result -> return2 (pc + 1, fp, Int64VmVal result : stack)
 
-execInstr Stop (_, fp, stack) =
-  return2 (-1, fp, stack)
-execInstr (UncondJump jumpAddr) (_, fp, stack) =
-  return2 (jumpAddr, fp, stack)
+    (Int1024VmTy, Int1024VmVal a, IntVmTy) -> return2 (pc + 1, fp, IntVmVal (fromInt1024toInt a) : stack)
+
+
+execInstr Stop (_, fp, stack) = return2 (-1, fp, stack)
+execInstr (UncondJump jumpAddr) (_, fp, stack) = return2 (jumpAddr, fp, stack)
 execInstr (CondJump jumpAddr) (pc, fp, IntVmVal x : stack)
   | intToBool x = return2 (pc + 1,   fp, stack) -- true
   | otherwise   = return2 (jumpAddr, fp, stack) -- false
@@ -361,8 +361,7 @@ execInstr (Input BoolTy loc indicator) (pc, fp, IntVmVal addr : stack) =
   do putStr ("? " ++ indicator ++ " : " ++ show BoolTy ++ " = ");
      inputString <- getLine
      case readBool inputString of
-       Nothing ->
-         return (Left (ErrorMsg ([loc], "input: not a boolean literal")))
+       Nothing -> return (Left (ErrorMsg ([loc], "input: not a boolean literal")))
        Just b ->
          let inputVmVal = (IntVmVal . boolToInt) b
              stack' = updateS stack (addr, inputVmVal)
@@ -393,6 +392,7 @@ execInstr (Input (IntTy WL64) loc indicator) (pc, fp, IntVmVal addr : stack) =
            Right result ->
              let stack' = updateS stack (addr, Int64VmVal result)
              in return2 (pc + 1, fp, stack')
+
 execInstr (Input (IntTy WL1024) loc indicator) (pc, fp, IntVmVal addr : stack) =
   do putStr ("? " ++ indicator ++ " : " ++ show (IntTy WL1024) ++ " = ");
      inputString <- getLine
