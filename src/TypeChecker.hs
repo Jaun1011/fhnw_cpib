@@ -5,7 +5,6 @@ import Parser
 import Model (Type (INT32, INT64, BOOLEAN),Terminal(IDENT, BOOL, FALSE), Attirbute (..), ChangeMode (VAR, CONST), AritmeticOperator (PLUS), RelOperator, FlowMode (IN), MechMode (REF, COPY))
 import Data.Type.Coercion (sym)
 import Symbol (Symbol, createSymbols, initSymbols, getSymbol, isInit, storeId, routineId, addSymbols, removeSymbols, setAddressById)
-import GHC.Windows (BOOL)
 import Debug.Trace
 import Utils.Logger
 import Data.Void (Void)

@@ -66,24 +66,28 @@ allocC sym env decl =  alloc sym decl (0,0,0,0)
                                 (
                                  instExp ++ instComp
                                 ,setAddressById sym (st + 1, storeId id)
-                                ,(st + maxarraysize + 2,e, p + 1,f))
+                                ,(st + maxarraysize + 1,e, p + 1,f))
 
                     where 
                         addrLen   = st 
                         addrArray = addrLen + 1
 
                         instExp = [AllocBlock 1
-                                  ,LoadIm IntVmTy (IntVmVal addrLen)] 
+                                  ,LoadIm IntVmTy (IntVmVal addrLen)
+                                  ] 
                                   
                                   ++ oprR sym env expr
                                   ++ [Store]
+                                  ++ [LoadIm IntVmTy (IntVmVal addrLen)
+                                     ,Deref]
+
 
                         instComp = [LoadIm Int1024VmTy (Int1024VmVal $Int1024 $toInteger maxarraysize)
                                    ,Gt Int1024VmTy
-                                   ,CondJump sizeCond
+                                   ,CondJump $sizeCond - 1
                                    ,Output (IntTy WL1024) $"array is bigger than maxsize = " ++ show maxarraysize
                                    ,Stop
-                                   ,AllocBlock maxarraysize
+                                   ,AllocBlock $maxarraysize
                                    ]
 
                         sizeCond = p + length instExp  + length instComp
