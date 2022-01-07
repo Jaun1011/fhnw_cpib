@@ -62,8 +62,8 @@ unspecVmVal :: VmValue
 unspecVmVal = IntVmVal 0
 
 readS :: Stack -> StoreAddress -> VmValue
---readS stack addr = stack !! ((length stack - 1) - addr)
-readS stack addr = trace ( "stack = " ++ (show $reverse stack)) stack !! ((length stack - 1) - addr)
+readS stack addr = stack !! ((length stack - 1) - addr)
+-- readS stack addr = trace ( "stack = " ++ (show $reverse stack)) stack !! ((length stack - 1) - addr)
 
 updateS :: Stack -> (StoreAddress, VmValue) -> Stack
 updateS stack (addr, val) = stack'

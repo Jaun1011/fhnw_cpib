@@ -20,7 +20,7 @@ import Symbol (createSymbols, Symbol, getSymbol, getAddress, setAddressById, sto
 import TypeChecker
 import Scanner (scanner)
 import Parser (IDecl (IProg, IDeclItem, IStore, IType, IFunc, IProc, INoDecl, IArrayType), parseProgram, IExpr (IOpr, IAliteral, ILiteral, IExprList, IExprListParams, ILiteralArray, IArrayLength), ICmd (ISkip, IBecomes, ICmds, IDebugOut, IDebugIn, IIf, IWhile), IParameter (IParams, IParam, INoParameter), paramsToDelc)
-import Model (Attirbute(AritmeticOperator, RelOperator), AritmeticOperator (PLUS, MINUS, MULTI, DIV), Terminal (RELOPR), RelOperator (EQUAL, GREATER, LESS, LESS_EQUAL, GREATER_EQUAL, NOT_EQUAL))
+import Model (Attirbute(AritmeticOperator, RelOperator, LogicOperator), AritmeticOperator (PLUS, MINUS, MULTI, DIV), Terminal (RELOPR), RelOperator (EQUAL, GREATER, LESS, LESS_EQUAL, GREATER_EQUAL, NOT_EQUAL), LogicOperator (AND, OR))
 import Debug.Trace
 import qualified Vm.BaseDecls as Model
 import Text.Read (Lexeme(String))
@@ -223,7 +223,7 @@ oprL sym env pt (ILiteralArray id expr)  = case findStoreSymbol sym env id of
                         ++ [Convert Int1024VmTy IntVmTy (Loc Nothing)]
                 -- ++ [LoadIm IntVmTy  (IntVmVal 0)] 
 
-        Nothing  -> error "array L error"  
+        Nothing  -> error $"array L error"  ++ id ++ show sym
  
 
 
@@ -245,6 +245,33 @@ oprR sym env pc (IExprListParams a b) = ia ++ ib
                 ia = oprR sym env pc  a 
                 ib = oprR sym env (pc + length ia)  b
                 
+
+oprR sym env pc (IOpr (LogicOperator OR )  a b) = inst
+        where 
+                ia = oprR sym env pc a 
+                ib = oprR sym env (pc + length ia)  b
+                
+                condAddr = pc +  length ia + 3
+                addr = condAddr  + length ib
+                inst = ia 
+                        ++ [CondJump condAddr
+                           ,LoadIm IntVmTy (IntVmVal 1)
+                           ,UncondJump addr
+                           ] 
+                        ++ ib
+                        
+
+oprR sym env pc (IOpr (LogicOperator AND)  a b) = inst
+        where 
+                ia = oprR sym env pc a 
+                ib = oprR sym env (pc + length ia)  b
+                
+                addr = pc +  length ia  +length ib + 2
+                inst = ia ++ [CondJump addr] 
+                          ++ ib
+                          ++ [UncondJump (addr + 1) 
+                             ,LoadIm IntVmTy (IntVmVal 0)]
+
 oprR sym env pc (IOpr o e1 e2) = conc $opr' o
      where
         opr' (AritmeticOperator PLUS)    = [Add Int1024VmTy (Loc Nothing)]
@@ -258,8 +285,9 @@ oprR sym env pc (IOpr o e1 e2) = conc $opr' o
         opr' (RelOperator GREATER_EQUAL)  = [Ge Int1024VmTy]
         opr' (RelOperator LESS)           = [Lt Int1024VmTy]
         opr' (RelOperator LESS_EQUAL)     = [Le Int1024VmTy]
+        
 
-        opr' t = error $"no oprR" ++ show t
+        opr' t = error $"no oprR " ++ show t
 
         conc op =  ia ++ ib ++ op
                 where 
@@ -311,7 +339,7 @@ oprR sym env pt (ILiteralArray id expr) = case findStoreSymbol sym env id of
                         ++ [Deref ]
                 -- ++ [LoadIm IntVmTy  (IntVmVal 0)] 
 
-        Nothing  -> error "array L error"  
+        Nothing  -> error "array R error"  
 oprR sym env  store  n  = error $"no supported opr " ++ show n
 
 

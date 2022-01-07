@@ -370,7 +370,7 @@ exprP = termRelP >>= exprP'
             b <- termRelP
             c <- exprP' b
 
-            return (IOpr attr c a)
+            return (IOpr attr a c)
             <|> return a
 
 
