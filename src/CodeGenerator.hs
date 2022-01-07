@@ -19,7 +19,7 @@ import Vm.Locations (BaseLocation(Loc1, Loc0), Location (Loc))
 import Symbol (createSymbols, Symbol, getSymbol, getAddress, setAddressById, storeId, routineId, addSymbols, removeSymbols, addSymbolsImpl, storeEnvId, routineEnvId, findStoreSymbol, findRoutineSymbol)
 import TypeChecker
 import Scanner (scanner)
-import Parser (IDecl (IProg, IDeclItem, IStore, IType, IFunc, IProc, INoDecl, IArrayType), parseProgram, IExpr (IOpr, IAliteral, ILiteral, IExprList, IExprListParams, ILiteralArray), ICmd (ISkip, IBecomes, ICmds, IDebugOut, IDebugIn, IIf, IWhile), IParameter (IParams, IParam, INoParameter), paramsToDelc)
+import Parser (IDecl (IProg, IDeclItem, IStore, IType, IFunc, IProc, INoDecl, IArrayType), parseProgram, IExpr (IOpr, IAliteral, ILiteral, IExprList, IExprListParams, ILiteralArray, IArrayLength), ICmd (ISkip, IBecomes, ICmds, IDebugOut, IDebugIn, IIf, IWhile), IParameter (IParams, IParam, INoParameter), paramsToDelc)
 import Model (Attirbute(AritmeticOperator, RelOperator), AritmeticOperator (PLUS, MINUS, MULTI, DIV), Terminal (RELOPR), RelOperator (EQUAL, GREATER, LESS, LESS_EQUAL, GREATER_EQUAL, NOT_EQUAL))
 import Debug.Trace
 import qualified Vm.BaseDecls as Model
@@ -275,6 +275,14 @@ oprR sym env pc (ILiteral id _)   = inc
                 
                 Just x -> error $"no valid label found " ++ show x
                 Nothing -> error $"no value found "++ show (storeId id) ++ " " ++ show sym 
+oprR sym env pc (IArrayLength id) =  
+        case findStoreSymbol sym env id of
+                Just n -> let 
+                        addrLen = getAddress n - 1
+                        in [LoadIm IntVmTy (IntVmVal addrLen) ,Deref]
+
+
+
 
 oprR sym env pt (ILiteralArray id expr) = case findStoreSymbol sym env id of
         Just n -> let 

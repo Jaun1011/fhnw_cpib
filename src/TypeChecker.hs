@@ -115,7 +115,7 @@ testSym = trace "sym" (setAddressById sym (111111111111, "routine.euklic"))
                 , True, 1)                        
                 ]
 
-testp = loadProg "../test/programs/array_sample.iml"
+testp = loadProg "../test/programs/p1.iml"
     where
         loadProg f = do
             file <- readFile f
@@ -212,6 +212,7 @@ checkOperator sym (IOpr op a b) = checkOpr op
 
         (syma, da, _) = checkExprRValue sym a opflag
         (symb, db, _) = checkExprRValue syma b opflag 
+
 checkOperator a b = error $"\n\t[typecheck] no IOpr" ++ show b 
 
 
@@ -245,6 +246,11 @@ checkExprRValue sym (ILiteral id init) flag =
             _ -> error $"\n\t[typecheck] var '" ++ id ++ "' not declared:\n\t" ++  show sym
 
 checkExprRValue sym (IAliteral a) flag = (sym, VariableType INT32, False) 
+checkExprRValue sym (IArrayLength id ) flag = 
+    case getSymbol sym $storeId id of
+        Just _ -> (sym, VariableType INT32, False) 
+        _ -> error $"\n\t[typecheck] var '" ++ id ++ "' not declared:\n\t" ++  show sym
+
 checkExprRValue sym (IMonadic attr expr) flag = checkExprRValue sym expr True
 checkExprRValue sym (IExprList id expr) flag =
     case getSymbol sym  $routineId id of

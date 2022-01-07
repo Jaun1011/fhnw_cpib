@@ -76,6 +76,7 @@ data IExpr
     = IAliteral Int
     | ILiteral String Bool -- name , is init?
     | ILiteralArray String IExpr-- name , is init?
+    | IArrayLength String 
     | IMonadic Attirbute IExpr
     | IOpr Attirbute IExpr IExpr
     | IExprList String IExpr
@@ -90,6 +91,7 @@ instance Show IExpr where
             show' :: IExpr -> Int -> String
             show' INone i           = "(INone)"
             show' (IAliteral n) i    = "(IAliteral " ++ show n ++ ")"
+            show' (IArrayLength n) i    = "(IArrayLength " ++ show n ++ ")"
             show' (ILiteral n b) i  = "(ILiteral " ++ show n ++ " " ++ show b ++ ")"
             show' (ILiteralArray n b) i  = "(ILiteralArray " ++ show n ++ " " ++ show b ++  ")"
 
@@ -417,6 +419,12 @@ factorP
             <|> do
                 s <- trm LEBRKT *> exprP <*trm REBRKT
                 return $ILiteralArray i s 
+            <|> 
+                do
+                trm DOT 
+                trm LENGTH  
+
+                return $IArrayLength i 
             <|> do
                 trm INIT
                 return $ILiteral i True
