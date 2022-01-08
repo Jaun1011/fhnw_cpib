@@ -1,11 +1,16 @@
 
-program Fact()
+program BubbleSort()
 
 global
-  x:int32[1];
-  t:int32
+  a:int32;
+  b:int32
 do
-  t init := 10;
-  debugout t
+
+  debugin a init;
+  debugin b init;
+
+  if a = 1 \/? b = 1 then
+      debugout 1
+  endif
 
 endprogram

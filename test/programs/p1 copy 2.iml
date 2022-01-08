@@ -1,0 +1,11 @@
+
+program Fact()
+
+global
+  x:int32[2]
+
+do
+  debugout x.length
+
+  
+endprogram

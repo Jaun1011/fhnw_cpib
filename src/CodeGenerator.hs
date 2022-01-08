@@ -1,6 +1,5 @@
 module CodeGenerator () where
 
-
 import Vm.VirtualMachineIOStudents(
     VMProgram(VMProgram),
     VmType(..),
@@ -212,8 +211,6 @@ oprL sym env pt (ILiteralArray id expr)  = case findStoreSymbol sym env id of
                         ++ index 
                         ++ [Output (IntTy WL1024) "[Runtime Exception] array out of bounds"
                            ,Stop]
-                        
-
 
             in  
                         overflow 
