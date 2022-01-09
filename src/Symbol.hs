@@ -1,5 +1,6 @@
 module Symbol (
     Symbol,
+    ProgScope(..),
     storeId,
     routineId,
     prefixId,
@@ -27,7 +28,8 @@ import Scanner
 import Debug.Trace
 import Data.List (sortBy)
 import Vm.VirtualMachineIOStudents (Instruction(Add))
-import Model (Attirbute)
+import Model (Attirbute, Terminal (GLOBAL))
+import Vm.BaseDecls (Scope(Global))
 
 type Id = String
 type Env = String
@@ -35,13 +37,16 @@ type Ref = Bool
 type Address = Int
 
 type Symbol = (Env, Id, IDecl, Ref, Address)
-
+data ProgScope 
+    = Glob
+    | Local
+    deriving(Show)
 
 
 getType :: Symbol -> Maybe Attirbute
 getType (_, _, IType _ attr, _, _) = Just attr
 getType (_, _, IArrayType _ _ attr, _, _) = Just attr
-getType _ = Nothing 
+getType _ = Nothing
 
 getAddress :: Symbol -> Address
 getAddress (_, _, _, _, addr) =addr
@@ -72,11 +77,11 @@ orderSym (_, _, IStore {}, _,_) (_, _, IProc {}, _,_) = LT
 orderSym _ _ = EQ
 
 
-findStoreSymbol :: [Symbol] -> Env -> Id -> Maybe Symbol
-findStoreSymbol sym env id = case getSymbol sym (storeEnvId env id) of
-        n -> n
-        Nothing  -> case getSymbol sym (storeId id) of
-                g -> g
+findStoreSymbol :: [Symbol] -> Env -> Id -> (Symbol, ProgScope)
+findStoreSymbol sym env id =  case getSymbol sym (storeId id) of 
+        Just n -> (n, Glob)
+        Nothing  -> case getSymbol sym (storeEnvId env id) of
+                Just g -> (g, Local)
                 Nothing -> error $"nothing found with ID <"++ (storeEnvId env id) ++ "> in scopes [\"\", " ++ env ++ "\"]\n\n" ++ show sym
 
 findRoutineSymbol :: [Symbol] -> String -> Maybe Symbol
@@ -155,11 +160,11 @@ addSymbolsImpl sym env pref (IProg _ _ glob _)  = addSymbolsImpl sym env pref gl
 addSymbolsImpl sym env pref (IDeclItem a b) = addSymbolsImpl (addSymbols sym env a) env pref b
 addSymbolsImpl sym env prefix a = sortSymbols $createSymbols' a sym
     where
-        createSymbols' a sym 
+        createSymbols' a sym
             | getId a /= "" = symbol (getId a) a sym : sym
             | getId a == "" = sym
-        
-        
+       
+       
         createSymbols' _ _ = []
 
         symbol id a sym
@@ -175,7 +180,7 @@ addSymbolsImpl sym env prefix a = sortSymbols $createSymbols' a sym
         getId (IType id _)                   = storeId $prefixId prefix  id
         getId INoDecl                        = ""
         getId t = error $show t
-        
+       
 
 addSymbolsImpl a b c d = error $ show a ++ show b ++ show c
 

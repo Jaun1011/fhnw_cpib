@@ -15,7 +15,7 @@ import Vm.CheckedArithmetic
 import Vm.Locations (BaseLocation(Loc1, Loc0), Location (Loc))
 
 
-import Symbol (createSymbols, Symbol, getSymbol, getAddress, setAddressById, storeId, routineId, addSymbols, removeSymbols, addSymbolsImpl, storeEnvId, routineEnvId, findStoreSymbol, findRoutineSymbol)
+import Symbol (createSymbols, Symbol, getSymbol, getAddress, setAddressById, storeId, routineId, addSymbols, removeSymbols, addSymbolsImpl, storeEnvId, routineEnvId, findStoreSymbol, findRoutineSymbol, ProgScope (Glob, Local))
 import TypeChecker
 import Scanner (scanner)
 import Parser (IDecl (IProg, IDeclItem, IStore, IType, IFunc, IProc, INoDecl, IArrayType), parseProgram, IExpr (IOpr, IAliteral, ILiteral, IExprList, IExprListParams, ILiteralArray, IArrayLength), ICmd (ISkip, IBecomes, ICmds, IDebugOut, IDebugIn, IIf, IWhile), IParameter (IParams, IParam, INoParameter), paramsToDelc)
@@ -42,7 +42,7 @@ genCode :: IDecl -> ([Instruction], [Symbol])
 genCode (IProg id _ glob cmd) = (allins ++ cmdins ++ [Stop], symalc)
     where 
             sym = createSymbols glob id
-            (allins, symalc, st) = allocC sym env glob
+            (allins, symalc, st) = allocC sym env (0,0,0,0) glob
             cmdins = cmdC symalc env st cmd  (length allins)
 
             env = ""
@@ -52,8 +52,8 @@ genCode (IStore  _ _) =  ([],[])
 genCode _ =  ([],[])
 
 
-allocC ::  [Symbol] -> Env -> IDecl -> ([Instruction], [Symbol], Storage)
-allocC sym env decl =  alloc sym decl (0,0,0,0)
+allocC ::  [Symbol] -> Env -> Storage->  IDecl -> ([Instruction], [Symbol], Storage)
+allocC sym env store decl =  alloc sym decl store
         where 
                 alloc sym (IDeclItem a b) store = (ia ++ ib,  symb, st2)
                                 where 
@@ -110,7 +110,7 @@ allocC sym env decl =  alloc sym decl (0,0,0,0)
                             (symf4, i) = paramsC symf3 id params 
                             symf5 = setAddressById symf4 (i,storeEnvId id $literalId d) 
                             
-                            (instLoc, symf6, store) = allocC symf5 id loc 
+                            (instLoc, symf6, store) = allocC symf5 id (st,e,p,f) loc 
                             instCmd = cmdC symf6 id store cmd pc
              
 
@@ -189,15 +189,13 @@ addrerssByID sym id = case getSymbol sym id of
 
 oprL :: [Symbol] -> Env -> ProgramPointer  -> IExpr -> [Instruction]
 oprL sym env store (ILiteral id _) = 
-        case findStoreSymbol sym env id of
-                Just (_,_,IStore {},_,addr) -> 
-                        if addr >= 0 
-                                then [LoadIm IntVmTy (IntVmVal addr)]
-                                else [LoadAddrRel addr]
+          case findStoreSymbol sym env id of
+                ((_,_,_,_,addr), Glob) ->  [LoadIm IntVmTy (IntVmVal addr)]
+                ((_,_,_,_,addr), Local) -> [LoadAddrRel addr]
 
 
 oprL sym env pt (ILiteralArray id expr)  = case findStoreSymbol sym env id of
-        Just n -> let 
+        (n,_) -> let 
                 addr = getAddress n
                 addrLen = addr - 1
 
@@ -220,7 +218,6 @@ oprL sym env pt (ILiteralArray id expr)  = case findStoreSymbol sym env id of
                         ++ [Convert Int1024VmTy IntVmTy (Loc Nothing)]
                 -- ++ [LoadIm IntVmTy  (IntVmVal 0)] 
 
-        Nothing  -> error $"array L error"  ++ id ++ show sym
  
 
 
@@ -294,23 +291,19 @@ oprR sym env pc (IOpr o e1 e2) = conc $opr' o
 oprR sym env pc (IAliteral val) = [LoadIm Int1024VmTy (Int1024VmVal $Int1024 $toInteger val)]
 oprR sym env pc (ILiteral id _)   = inc
         
-        where inc = case findStoreSymbol sym env id  of 
-                Just (_,_,IStore {},_,addr) -> [LoadIm IntVmTy (IntVmVal addr) ,Deref]
-                Just (_,_,IType {},_,addr)  -> [LoadAddrRel addr, Deref]
-                
-                Just x -> error $"no valid label found " ++ show x
-                Nothing -> error $"no value found "++ show (storeId id) ++ " " ++ show sym 
+     where inc = case findStoreSymbol sym env id  of 
+                ((_,_,_,_,addr),Glob)  -> [LoadIm IntVmTy (IntVmVal addr) ,Deref]
+                ((_,_,_,_,addr),Local) -> [LoadAddrRel addr, Deref]
+
 oprR sym env pc (IArrayLength id) =  
         case findStoreSymbol sym env id of
-                Just n -> let 
+                (n,_) -> let 
                         addrLen = getAddress n - 1
                         in [LoadIm IntVmTy (IntVmVal addrLen) ,Deref]
 
 
-
-
 oprR sym env pt (ILiteralArray id expr) = case findStoreSymbol sym env id of
-        Just n -> let 
+        (n,_)-> let 
                 addr = getAddress n
                 addrLen = addr - 1
 
@@ -336,7 +329,6 @@ oprR sym env pt (ILiteralArray id expr) = case findStoreSymbol sym env id of
                         ++ [Deref ]
                 -- ++ [LoadIm IntVmTy  (IntVmVal 0)] 
 
-        Nothing  -> error "array R error"  
 oprR sym env  store  n  = error $"no supported opr " ++ show n
 
 
