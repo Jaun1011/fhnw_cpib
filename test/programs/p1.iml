@@ -1,0 +1,16 @@
+
+program BubbleSort()
+
+global
+  a:int32;
+  b:int32
+do
+
+  debugin a init;
+  debugin b init;
+
+  if a = 1 \/? b = 1 then
+      debugout 1
+  endif
+
+endprogram

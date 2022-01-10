@@ -6,7 +6,7 @@ module Scanner
 import GHC.Unicode (isAlpha, isDigit)
 
 import Model (Token,Terminal(..), Attirbute(..),specialChars, transformKeyword )
-import List (split)
+import Utils.List (split)
 
 
 scanner :: String -> [Token]
@@ -21,23 +21,30 @@ scanner a =
             let (rs, t) = scannerLiteral as 
             in transformKeyword t : scanner rs
 
+
 scannerLiteral :: String -> (String, Token)
 scannerLiteral [] = ([], (UNKNOWN ,Nothing))
 scannerLiteral all@(a:as) =
-    let (fn, t) = fnLiteral a
-        (s, e) = split all fn
-    in (e, (t, Just (StringType s)))
+    let (fn, term) = firstCharLiteral a
+        (value, rest) = split all fn
+    in (rest, integerTransform value term)
 
-
+integerTransform :: String -> Terminal -> Token
+integerTransform a ALITERAL = (ALITERAL, Just (IntType (read a)))
+integerTransform a LITERAL = (LITERAL, Just (StringType a))
+integerTransform a b = (UNKNOWN, Nothing)
+    
 isLiteral :: Char -> Bool
 isLiteral c = isNumber c || isAlpha c
 
 isNumber :: Char -> Bool 
 isNumber c =  isDigit c || c == '\''
 
-fnLiteral :: Char -> (Char -> Bool, Terminal)
-fnLiteral c 
+firstCharLiteral :: Char -> (Char -> Bool, Terminal)
+firstCharLiteral c 
     | isAlpha c = (isLiteral, LITERAL)
     | isDigit c = (isNumber, ALITERAL)
     | otherwise = (const False, UNKNOWN)
     
+
+

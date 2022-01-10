@@ -1,0 +1,22 @@
+AllocBlock 1
+AllocBlock 1
+LoadIm Int 0
+Input int1024 --- ""
+LoadIm Int 1
+Input int1024 --- ""
+LoadIm Int 1
+Deref
+LoadIm Int1024 1
+Eq Int1024
+CondJump 12
+LoadIm Int 1
+UncondJump 17
+LoadIm Int 0
+Deref
+LoadIm Int1024 1
+Eq Int1024
+CondJump 21
+LoadIm Int1024 1
+Output int1024 ""
+UncondJump 21
+Stop

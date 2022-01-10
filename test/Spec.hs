@@ -6,5 +6,5 @@ import Model (Terminal(..), Attirbute (..), Token)
 
 main :: IO ()
 main = do
-  runTestTT scannerTests
+  runTestTT scannerTests 
   return ()

@@ -1,0 +1,46 @@
+
+program BubbleSort()
+
+global
+  values:int32[10];
+  i:int32;
+  j:int32;
+  swap:int32
+do
+  values[0] := 8;
+  values[1] := 1;
+  values[2] := 8;
+  values[3] := 8;
+  values[4] := 2;
+  values[5] := 8;
+  values[6] := 8;
+  values[7] := 6;
+  values[8] := 8;
+  values[9] := 9;
+
+
+  i init := 0;
+  j init := 0;
+  swap init := 0;
+
+  while i < values.length do
+    j := i;
+    while j < values.length do
+      if values[i] > values[j] then 
+          swap := values[i];
+          values[i] := values[j];
+          swap := values[j]
+      endif;
+      j := j + 1
+
+    endwhile;
+    i := i + 1
+  endwhile;
+
+  // print out 
+  i := 0;
+  while i < values.length do
+    debugout values[i];
+    i := i + 1
+  endwhile
+endprogram

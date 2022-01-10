@@ -1,101 +1,136 @@
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 {-# LANGUAGE LambdaCase #-}
-module ParsingLib (module ParsingLib, module Control.Applicative) where
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
-import Control.Applicative
-import Data.Char
-import Scanner
+module ParsingLib (
+   Parser,
+   parse,
+   item,
+   ident,
+   digit,
+   trm,
+   trmA,
+   trmAByAttr,
+) where 
+
+
 import Model
-import GHC.TypeLits (AppendSymbol)
+import Scanner (scanner)
+import Model
+import Control.Applicative
+import GHC.RTS.Flags (MiscFlags(installSEHHandlers), ProfFlags (retainerSelector), ParFlags)
+import Data.Type.Bool (Not)
+import Data.Type.Equality (outer)
+import Data.Char
+import GHC.Base (VecElem(Int8ElemRep), Type)
+import Control.Monad (when)
+import GHC.Float (Floating(exp))
+import Data.Maybe (Maybe(Nothing))
+import Debug.Trace
+import Data.Semigroup (option)
+import Model (Terminal(FALSE, BECOMES, ENDPROGRAM))
+import Data.Bool (Bool(False))
+import GHC.Arr (cmpArray)
+import System.IO (putStrLn)
+import Control.Monad.IO.Class (MonadIO(liftIO))
+import Utils.Logger (info, logIdent)
 
 
--- Takes a string and returns a maybe of  "a" and the string which wasn't consumed
-newtype Parser a = P { parse :: String -> Maybe (a, String)}
+newtype Parser a =
+    P {
+        parse :: [Token] -> Maybe (a, [Token])
+    }
 
 
--- Functor needed to map multiple parser at each other
 instance Functor Parser where
-   -- fmap :: (a -> b) -> Parser a -> Parser b
-   fmap g p = P (\inp -> case parse p inp of
-                           Nothing     -> Nothing 
-                           Just (a, out) -> Just (g a, out))
+    fmap g p = P $ \inp -> do
+        (a, out) <- parse p inp
+        return (g a, out)
 
--- applicative instace to chain parsers
 instance Applicative Parser where
-   --pure :: a -> Parser a
-   pure v = P (\inp -> Just (v, inp))
-   -- <*> :: Parser (a->b) -> Parser a -> Parser b
-   pg <*> pa = P (\inp -> 
-      case parse pg inp of
-         Nothing     -> Nothing
-         Just (g,out)-> case parse pa out of
-                           Nothing        -> Nothing 
-                           Just (a, out') -> Just (g a, out'))
+    pure v = P $ \inp -> Just (v, inp)
+    pg <*> pa = P $ \inp -> do
+        (g, out) <- parse pg inp
+        (a, out') <- parse pa out
+        return (g a, out')
 
--- alternative has two methods "empty" and "choice -> takes 2 things an chooses one"
--- Making choices
-instance Alternative Parser where 
-   --empty :: Parser a
-   empty = P (\inp -> Nothing )
-   -- (<|>) :: Parser a -> Parser a -> Parser a
-   -- try either p or q if p works don't look at q
-   p <|> q = P (\inp -> 
-      case parse p inp of 
-         Nothing       -> parse q inp   -- If Parser p fails
-         Just (v, out) -> Just (v,out)) -- If parser p succeeds
+instance Alternative Parser where
+    empty = P $ const Nothing
+    p <|> q = P $ \inp ->
+        case parse p inp of
+            Nothing  -> parse q inp
+            Just (v, out) -> Just (v, out)
 
--- monad is used to remove case based code duplication, basically composition of even func
 instance Monad Parser where
-    -- (>>=) :: Parser a -> (a -> Parser b) -> Parser b
-    pa >>= f = P (\inp -> 
+    pa >>= f = P (\inp ->
        case parse pa inp of
-          Nothing      -> Nothing 
-          Just (a, rest) -> parse (f a) rest)
+            Nothing      -> Nothing
+            Just (a, rest) -> parse (f a) rest)
 
--- parses a Char if predicate p is evaluated as true
-sat :: (Char -> Bool ) -> Parser Char 
-sat p = do 
+
+next :: (a -> b) -> [a] -> Maybe (b, [a])
+next  _ [] = Nothing
+next  fn (c:cs) =  Just (fn c, cs)
+
+
+item :: Parser Token
+item = P (next id)
+
+
+sat :: (Token -> Bool) -> Parser Token
+sat p = do
    -- parses item and gets access to char
    c <- item
    -- if the char = predikate give pure c back or with empty the failed parser
-   if p c then return c else empty
+   if p c
+      then return c
+      else empty
 
--- parses any char
-item :: Parser Char
-item = P (\inp -> case inp of
-                     (c:cs) -> Just (c, cs)
-                     _      -> Nothing)
+-- consumes terminal
+trm :: Terminal -> Parser Token
+trm t = do
+    (tc, a) <- item
+    -- logIdent 1 "trm" (tc, a)
 
--- parses only diggits
-digit :: Parser Char
-digit = sat isDigit
+    if tc == t
+        then return (tc, a)
+        else empty
 
--- parses a char if it matches the given c
-char :: Char -> Parser Char
-char c = sat (==c)
+trmA :: Terminal  -> Parser Attirbute
+trmA t = do
+    (_, attr) <- trm t
+    --logIdent 1 "trmA" attr
 
--- parses natural numbers string to int values
-nat :: Parser Int 
-nat = fmap read (some digit)
+    case attr of
+        Just a -> return a
+        _ -> empty
 
--- parses to whole numbers -> takes the char and parses + negates the '-'
--- (whole numbers are a nat or a mit with '-' beforehand)
-int :: Parser Int 
-int = nat 
-    <|> fmap (*(-1)) (char '-' *> nat)
+trmAByAttr :: Attirbute  -> Parser Attirbute
+trmAByAttr a = do
+    (_, ac) <- item
+    -- logIdent 1  "trmAByAttr" ac
 
--- builds a parser that consumes the defined string
-string :: String -> Parser String
-string []      = pure []
-string (c:cs)  = pure (:) <*> char c <*> string cs
 
--- Handling spacing
-space :: Parser ()
-space = fmap (\_ -> ()) (many (sat isSpace))
+    case ac of
+        Just ac ->
+            if a == ac
+            then return ac
+            else empty
 
--- token Is a primitive that ignores any space before and after p
-token :: Parser a -> Parser a
-token p = pure (\_ r _ -> r) <*> space <*> p <*> space
+ident :: Parser String
+ident =  P $ \(a:as) ->
+    case a of
+        (LITERAL, Just (StringType i)) -> do 
+            -- logIdent 1  "ident" (i)
+            Just (i, as)
+        _ -> Nothing
 
+
+digit :: Parser Int
+digit = P $ \(t:ts) ->
+    case t of
+        (ALITERAL, Just (IntType i)) ->do
+            -- logIdent 1  "digit" i
+            Just (i, ts)
+        _ -> Nothing
 
 

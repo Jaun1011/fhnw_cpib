@@ -1,0 +1,13 @@
+
+program Fact()
+
+global
+  x:int32
+do
+    x init := 0;
+    while x < 10 do
+        debugout x;
+        x := x + 1
+    endwhile
+
+endprogram
