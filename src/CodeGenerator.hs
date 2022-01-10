@@ -1,4 +1,4 @@
-module CodeGenerator () where
+module CodeGenerator (genCode, runProg) where
 
 import Vm.VirtualMachineIOStudents(
     VMProgram(VMProgram),
@@ -335,32 +335,12 @@ oprR sym env  store  n  = error $"no supported opr " ++ show n
 
 
 
+runProg :: [Instruction] -> IO ()
+runProg isnt = do
 
-printSymTable =do
-        res <- testProg
-        let c = concat $map (\(a,b,c,d,e) -> show (a,b,d,e) ++ ['\n']) (snd res)
-        writeFile "./code.sym.vmc" c
-
-printCode =do
-        res <- testProg
-        let c = concat $map (\n -> show n ++ ['\n']) (fst res)
-        writeFile "./code.vmc" c
-
-runProg = do
-        (e,l) <- testProg
-
-        let n = listArray (0, length e - 1) e
+        let n = listArray (0, length isnt - 1) isnt
 
         let prog = VMProgram (Ident "asdf",  n)
-        debugProgram prog
-
-
-testProg = do
-    --file <- readFile "../test/programs/array_sample.iml"
-    file <- readFile "../test/programs/p1.iml"
-
-    let val = parseProgram  (scanner file)
-    return (genCode $snd (checkProgram val))
-    
-
+        n <- debugProgram prog
+        return ()
 

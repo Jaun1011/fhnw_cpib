@@ -24,7 +24,6 @@ module Symbol (
 
 
 import Parser (IDecl(..), parseProgram, IExpr (ILiteralArray))
-import Scanner
 import Debug.Trace
 import Data.List (sortBy)
 import Vm.VirtualMachineIOStudents (Instruction(Add))
