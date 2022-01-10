@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       CodeGenerator
+      Compiler
       Model
       Parser
       ParsingLib
@@ -70,6 +71,7 @@ test-suite imlCompiler-test
   main-is: Spec.hs
   other-modules:
       ScannerTest
+      TyoeCheckTest
       Paths_imlCompiler
   hs-source-dirs:
       test

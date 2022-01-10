@@ -19,9 +19,37 @@ run file = do
     let ast = parseProgram (scanner file)
     let check = checkProgram ast
     let symFile = outpath ++ file ++ ".sym"
-    info "typechecker symtable" check
+    printCode "typechecker" check
 
 
     let (inst, sym) = genCode ast
+    printSymTable "codegen" sym
+    printCode "codegen" inst
+
+
+
     runProg inst
 
+
+
+
+
+
+printSymTable name res =do
+        let c = concat $map (\(a,b,c,d,e) -> show (a,b,d,e) ++ ['\n']) res
+        writeFile (outpath ++ name ++ ".sym") c
+
+printCode name res = do
+        let c = concat $map (\n -> show n ++ ['\n']) (res)
+        writeFile (outpath ++ name  ++ ".inst") c
+{-
+
+
+testProg = do
+    --file <- readFile "../test/programs/array_sample.iml"
+    file <- readFile "../test/programs/p1.iml"
+
+    let val = parseProgram  (scanner file)
+    return (genCode (checkProgram val))
+    
+-}

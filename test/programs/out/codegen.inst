@@ -1,0 +1,60 @@
+UncondJump 22
+LoadAddrRel (-1)
+Deref
+LoadIm Int1024 0
+Eq Int1024
+CondJump 10
+LoadAddrRel (-2)
+LoadIm Int1024 1
+Store
+UncondJump 21
+LoadAddrRel (-2)
+LoadAddrRel (-1)
+Deref
+AllocBlock 1
+LoadAddrRel (-1)
+Deref
+LoadIm Int1024 1
+Sub Int1024 ---
+Call 1
+Mult Int1024 ---
+Store
+Return 1
+UncondJump 51
+AllocBlock 1
+LoadAddrRel 1
+LoadIm Int1024 1
+Store
+LoadAddrRel (-2)
+LoadIm Int1024 1
+Store
+LoadAddrRel 1
+Deref
+LoadAddrRel (-1)
+Deref
+Le Int1024
+CondJump 50
+LoadAddrRel (-2)
+LoadAddrRel (-2)
+Deref
+LoadAddrRel 1
+Deref
+Mult Int1024 ---
+Store
+LoadAddrRel 1
+LoadAddrRel 1
+Deref
+LoadIm Int1024 1
+Add Int1024 ---
+Store
+UncondJump 30
+Return 1
+AllocBlock 1
+LoadIm Int1024 5
+Call 1
+Output int1024 ""
+AllocBlock 1
+LoadIm Int1024 5
+Call 23
+Output int1024 ""
+Stop

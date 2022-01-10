@@ -3,12 +3,10 @@ program Fact()
 
 global
 
-    t:int32;
 
     fun factRec(n:int32) 
       returns const fact:int32
     do
-      debugout n;
       if n = 0 then
         fact init := 1
       else
@@ -17,19 +15,22 @@ global
     endfun;
 
 
-    fun factRec2(n:int32) 
-      returns const fact:int32
+    fun fact(n:int32) returns fact:int32
+    local
+      i:int32
     do
-      debugout n;
-      if n = 0 then
-        fact init := 1
-      else
-        fact init := n * factRec(n-1)
-      endif
+      
+      i init := 1;
+      fact init := 1;
+
+      while i <= n do
+        fact := fact * i;
+        i := i + 1
+      endwhile
     endfun
 do
-  t init := factRec(5); 
-  debugout t
+  debugout factRec(5);
+  debugout fact(5)
 
 
 endprogram

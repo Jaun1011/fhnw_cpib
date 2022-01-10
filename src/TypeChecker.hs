@@ -10,16 +10,6 @@ import Utils.Logger
 import Data.Void (Void)
 
 
-testp = loadProg "../test/programs/p1.iml"
-    where
-        loadProg f = do
-            file <- readFile f
-            let pt = parseProgram (scanner file)
-            let st = checkDecl [] pt
-            
-            return st
-
-
 checkProgram :: IDecl -> [Symbol]
 checkProgram = checkDecl [] 
 

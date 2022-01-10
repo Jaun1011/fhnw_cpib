@@ -13,7 +13,7 @@ module Vm.CheckedArithmetic
     checkIntImplementation,
     Int32(..), Int64(..), Int1024(..),
     fromInt32toInt64, fromInt32toInt1024, fromInt64toInt1024,
-    fromInt64toInt32, fromInt1024toInt32, fromInt1024toInt64,
+    fromInt64toInt32, fromInt1024toInt32, fromInt1024toInt64, fromInt1024toInt,
     fromIntegerToInt32, fromIntegerToInt64, fromIntegerToInt1024,
   )
 {-
@@ -217,6 +217,9 @@ fromInt1024toInt64 (Int1024 a)
   | otherwise = Left Overflow
   where minBound64 = toInteger (val64 minBound)
         maxBound64 = toInteger (val64 maxBound)
+
+fromInt1024toInt ::Int1024 -> Int
+fromInt1024toInt (Int1024 a) = fromInteger a
 
 fromIntegerToInt32 :: Integer -> Either ArithError Int32
 fromIntegerToInt32 a

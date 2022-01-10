@@ -1,0 +1,7 @@
+("fact","store.fact.i",False,1)
+("fact","store.fact.fact",False,-2)
+("fact","store.fact.n",False,-1)
+("factRec","store.factRec.fact",False,-2)
+("factRec","store.factRec.n",False,-1)
+("Fact","routine.fact",False,23)
+("Fact","routine.factRec",False,1)
