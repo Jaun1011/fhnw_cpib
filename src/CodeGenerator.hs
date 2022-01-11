@@ -24,6 +24,7 @@ import Debug.Trace
 import qualified Vm.BaseDecls as Model
 import Text.Read (Lexeme(String))
 import GHC.Real (reduce)
+import Text.ParserCombinators.ReadP (count)
 
 
 type Env = String
@@ -103,7 +104,7 @@ allocC sym env store decl =  alloc sym decl store
                         where 
                             symf0 = setAddressById sym (p + 1, routineEnvId env id)    
 
-                            symf1 = addSymbolsImpl (trace (show  symf0) symf0) id id (paramsToDelc params) 
+                            symf1 = addSymbolsImpl symf0 id id (paramsToDelc params) 
                         
 
                             symf2 = addSymbolsImpl  symf1 id id ret   
@@ -116,12 +117,17 @@ allocC sym env store decl =  alloc sym decl store
                             instCmd = cmdC symf6 id store cmd pc
              
 
-                            totinstr = [UncondJump (pt + 1)]  ++ instLoc ++ instCmd ++ [Return 1]
+                            totinstr = [UncondJump (pt + 1)]  ++ instLoc ++ instCmd ++ [Return $countParams params]
 
                             pc = p + length instLoc +1
                             pt = pc + length instCmd
 
                 alloc sym t c = error $"________________" ++ show t
+
+countParams :: IParameter -> Int
+countParams  (IParams  a b) = countParams a + countParams b
+countParams (IParam {}) = 1
+countParams _ = 0
 
 
 literalId :: IDecl -> String
