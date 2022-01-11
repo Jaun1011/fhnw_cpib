@@ -1,0 +1,10 @@
+
+program BubbleSort()
+
+global
+  values:int32[10]
+do
+  values[9] := 1111111111111111111;
+  debugout values[9]
+
+endprogram

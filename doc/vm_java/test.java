@@ -63,14 +63,15 @@ public class LoadAddrRelExe{
 
 public class CallExec{
     public CallExec(int routAddress){ }
+    
     public void execute() throws ExecutionError{
-        store[sp]= Data.intNew(fp);
+        store[sp] = Data.intNew(fp);
         store[sp + 1]= Data.intNew(ep);
         store[sp + 2]= Data.intNew(pc);
         
-        fp= sp;
-        sp= sp + 3;
-        pc= routAddress;
+        fp = sp;
+        sp = sp + 3;
+        pc = routAddress;
     }
 }
 

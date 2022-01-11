@@ -90,7 +90,7 @@ allocC sym env store decl =  alloc sym decl store
                                    ]
 
                         sizeCond = p + length instExp  + length instComp
-                        maxarraysize = 10
+                        maxarraysize = 100
 
                 alloc sym (IStore _ (IType id _)) (st,e,p,f) = 
                                 ([AllocBlock 1]

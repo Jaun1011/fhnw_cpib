@@ -1,0 +1,17 @@
+
+program Fact()
+
+global
+
+
+    fun add(n:int32, t:int32) returns res:int32
+    do
+        res init := t + n
+    endfun
+
+
+do
+  debugout add(1, 1)
+
+
+endprogram

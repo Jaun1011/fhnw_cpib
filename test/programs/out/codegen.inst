@@ -1,60 +1,41 @@
-UncondJump 22
-LoadAddrRel (-1)
-Deref
-LoadIm Int1024 0
-Eq Int1024
-CondJump 10
-LoadAddrRel (-2)
-LoadIm Int1024 1
-Store
-UncondJump 21
-LoadAddrRel (-2)
-LoadAddrRel (-1)
-Deref
 AllocBlock 1
-LoadAddrRel (-1)
-Deref
-LoadIm Int1024 1
-Sub Int1024 ---
-Call 1
-Mult Int1024 ---
+LoadIm Int 0
+LoadIm Int1024 10
 Store
-Return 1
-UncondJump 51
-AllocBlock 1
-LoadAddrRel 1
+LoadIm Int 0
+Deref
+LoadIm Int1024 10
+Gt Int1024
+CondJump 11
+Output int1024 "[Runtime Exception] array is bigger than maxsize = 10"
+Stop
+AllocBlock 10
+LoadIm Int1024 9
+LoadIm Int 0
+Deref
+Ge Int1024
+CondJump 20
+LoadIm Int1024 9
+Output int1024 "[Runtime Exception] array out of bounds"
+Stop
 LoadIm Int1024 1
-Store
-LoadAddrRel (-2)
-LoadIm Int1024 1
-Store
-LoadAddrRel 1
-Deref
-LoadAddrRel (-1)
-Deref
-Le Int1024
-CondJump 50
-LoadAddrRel (-2)
-LoadAddrRel (-2)
-Deref
-LoadAddrRel 1
-Deref
-Mult Int1024 ---
-Store
-LoadAddrRel 1
-LoadAddrRel 1
-Deref
-LoadIm Int1024 1
+LoadIm Int1024 9
 Add Int1024 ---
+Convert Int1024 Int ---
+LoadIm Int1024 1111111111111111111
 Store
-UncondJump 30
-Return 1
-AllocBlock 1
-LoadIm Int1024 5
-Call 1
-Output int1024 ""
-AllocBlock 1
-LoadIm Int1024 5
-Call 23
+LoadIm Int1024 9
+LoadIm Int 0
+Deref
+Ge Int1024
+CondJump 34
+LoadIm Int1024 9
+Output int1024 "[Runtime Exception] array out of bounds"
+Stop
+LoadIm Int1024 1
+LoadIm Int1024 9
+Add Int1024 ---
+Convert Int1024 Int ---
+Deref
 Output int1024 ""
 Stop
