@@ -156,7 +156,7 @@ removeSymbols (d@(e,_,_,_,_):ds) env
 
 addSymbolsImpl :: [Symbol] -> String -> String -> IDecl -> [Symbol]
 addSymbolsImpl sym env pref (IProg _ _ glob _)  = addSymbolsImpl sym env pref glob
-addSymbolsImpl sym env pref (IDeclItem a b) = addSymbolsImpl (addSymbols sym env a) env pref b
+addSymbolsImpl sym env pref (IDeclItem a b) = addSymbolsImpl (addSymbolsImpl sym env pref a) env pref b
 addSymbolsImpl sym env prefix a = sortSymbols $createSymbols' a sym
     where
         createSymbols' a sym

@@ -103,8 +103,10 @@ allocC sym env store decl =  alloc sym decl store
                         where 
                             symf0 = setAddressById sym (p + 1, routineEnvId env id)    
 
-                            symf1 = addSymbolsImpl symf0 id id (paramsToDelc params) 
-                            symf2 = addSymbolsImpl symf1 id id ret   
+                            symf1 = addSymbolsImpl (trace (show  symf0) symf0) id id (paramsToDelc params) 
+                        
+
+                            symf2 = addSymbolsImpl  symf1 id id ret   
                             symf3 = addSymbolsImpl symf2 id id loc  
 
                             (symf4, i) = paramsC symf3 id params 
@@ -130,12 +132,12 @@ literalId _ = error "no type"
 declAllocC :: [Symbol] -> Env -> (IParameter,Int) -> ([Symbol], StackPointer)
 declAllocC sym env (IParams  a b, addr) = declAllocC syma env (b, addra)         
         where  (syma, addra) = declAllocC sym env (a, addr) 
-
 declAllocC sym env (IParam _ _ _ lit, addr) = (setAddressById sym (addr, storeEnvId env $literalId lit), addr - 1)
 
                 
 paramsC :: [Symbol] -> Env -> IParameter -> ([Symbol], StackPointer)
 paramsC sym env params = declAllocC sym env (params, -1)
+
 
 
 cmdC :: [Symbol] -> Env -> Storage -> ICmd -> ProgramPointer -> [Instruction]
