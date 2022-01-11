@@ -1,3 +1,3 @@
-("BubbleSort","store.values",IStore (ChangeMode VAR) (IArrayType "values" 
-	(IAliteral 10)
+("MaxError","store.values",IStore (ChangeMode VAR) (IArrayType "values" 
+	(IAliteral 101)
  (VariableType INT32)),False,-99999999)

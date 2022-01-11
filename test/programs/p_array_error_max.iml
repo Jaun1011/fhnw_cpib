@@ -1,0 +1,9 @@
+
+program MaxError()
+
+global
+  values:int32[101]
+do
+  debugout 1
+
+endprogram

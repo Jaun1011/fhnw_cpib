@@ -1,5 +1,5 @@
 
-program BubbleSort()
+program ArrayOverflow()
 
 global
   values:int32[10]
